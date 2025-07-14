@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Main Content -->
+    <div class="content">
+        <div class="container-fluid">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{% block dashboard_title %}Dashboard{% endblock %}</h1>
+            </div>
+
+            {% block dashboard_content %}
+            <div class="row">
+                <!-- Content will be overridden by child templates -->
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

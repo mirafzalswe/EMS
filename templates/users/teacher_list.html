@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <title>Barcha o'qituvchilar</title>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="text-center mt-5">Barcha O'qituvchilar</h1>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">O'qituvchilar</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Ism</th>
+                        <th>Email</th>
+                        <th>Guruhlar</th>
+                        <th>Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr>
+                        <td>{{ teacher.get_full_name }}</td>
+                        <td>{{ teacher.email }}</td>
+                        <td>{{ teacher.teaching_groups.count }}</td>
+                        <td>
+                            <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-primary btn-sm">
+                                Guruhlarni ko'rish
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No teachers found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

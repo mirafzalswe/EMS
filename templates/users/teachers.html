@@ -1,0 +1,292 @@
+{% extends 'users/dashboard.html'%}
+{% load static %}
+
+{% block heading%}
+    <title>O'qituvchilar</title>
+{% endblock%}
+
+{% block content%}
+    <div class="container_teacher">
+        <div class="loader" id="loader"></div>
+        
+        <!-- Header with count and add button -->
+        <div class="teacher-header">
+            <div class="teacher-count">
+                <h2>O'qituvchilar</h2>
+                <span class="count-badge">Miqdor — {{ teachers|length }}</span>
+            </div>
+            <button class="add-teacher-btn" id="openAddTeacher">
+                <i class="fas fa-plus"></i>
+                Yangisini qo'shish
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="number-header">№</th>
+                        <th>O'qituvchi ismi</th>
+                        <th>Tel raqami</th>
+                        <th>Guruh</th>
+                        <th>Filial</th>
+                        <th class="action-header">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr>
+                        <td class="number-column">{{ forloop.counter }}</td>
+                        <td class="teacher-name">
+                            {% if teacher.avatar %}
+                            <img src="{{ teacher.avatar }}" alt="{{ teacher.first_name }}" class="avatar">
+                            {% else %}
+                            <img src="/static/images/default-avatar.png" alt="{{ teacher.first_name }}" class="avatar">
+                            {% endif %}
+                            <span>{{ teacher.first_name }} {{ teacher.last_name }}</span>
+                        </td>
+                        <td class="phone-column">{{ teacher.phone|default:"-" }}</td>
+                        <td>{{ teacher.specialization|default:"-" }}</td>
+                        <td>{{ teacher.location|default:"Asosiy filial" }}</td>
+                        <td class="action-icons">
+                            <button class="action-btn delete-btn" title="O'chirish" data-id="{{ teacher.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="action-btn edit-btn" title="Tahrirlash" data-id="{{ teacher.id }}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 30px;">
+                            O'qituvchilar topilmadi
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Teacher Sidebar -->
+    <div class="add-teacher-sidebar" id="addTeacherSidebar">
+        <div class="sidebar-header">
+            <h3>Yangi o'qituvchi qo'shish</h3>
+            <button class="close-sidebar" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addTeacherForm" class="add-teacher-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="avatar-upload">
+                <div class="avatar-preview">
+                    <img id="avatarPreview" src="https://img.freepik.com/free-psd/contact-icon-illustration-isolated_23-2151903337.jpg?semt=ais_hybrid&w=740" alt="Avatar Preview">
+                </div>
+                <label for="avatar" class="avatar-upload-btn">
+                    <i class="fas fa-camera"></i>
+                    Rasm yuklash
+                </label>
+                <input type="file" id="avatar" name="avatar" accept="image/*" hidden>
+            </div>
+
+            <div class="form-group">
+                <label for="first_name">Ism</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Familiya</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Telefon</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+
+            <div class="form-group">
+                <label for="specialization">Mutaxassislik</label>
+                <input type="text" id="specialization" name="specialization" required>
+            </div>
+
+            <div class="form-group">
+                <label for="experience">Ish tajribasi (yil)</label>
+                <input type="number" id="experience" name="experience" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="birthday">Tug'ilgan sana</label>
+                <input type="date" id="birthday" name="birthday">
+            </div>
+
+            <div class="form-group">
+                <label for="bio">O'qituvchi haqida</label>
+                <textarea id="bio" name="bio" rows="3"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check"></i>
+                    Saqlash
+                </button>
+                <button type="button" class="cancel-btn" id="cancelAdd">
+                    <i class="fas fa-times"></i>
+                    Bekor qilish
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Edit button functionality
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const teacherId = this.getAttribute('data-id');
+                // Show loader
+                loader.style.display = 'block';
+                
+                // Redirect to edit page
+                window.location.href = `/users/teachers/${teacherId}/edit/`;
+            });
+        });
+
+        // Delete button functionality
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const teacherId = this.getAttribute('data-id');
+                if (confirm("Siz rostdan ham bu o'qituvchini o'chirmoqchimisiz?")) {
+                    // Show loader
+                    loader.style.display = 'block';
+                    
+                    // Send delete request
+                    fetch(`/api/users/${teacherId}/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Remove row from table
+                            this.closest('tr').remove();
+                            // Update all remaining numbers
+                            updateNumbers();
+                            loader.style.display = 'none';
+                        } else {
+                            loader.style.display = 'none';
+                            alert("O'chirish jarayonida xatolik yuz berdi!");
+                        }
+                    })
+                    .catch(error => {
+                        loader.style.display = 'none';
+                        console.error('Error:', error);
+                        alert("O'chirish jarayonida xatolik yuz berdi!");
+                    });
+                }
+            });
+        });
+
+        // Function to update numbers after deletion
+        function updateNumbers() {
+            const numberCells = document.querySelectorAll('.number-column');
+            numberCells.forEach((cell, index) => {
+                cell.textContent = index + 1;
+            });
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Add Teacher Sidebar Functionality
+        const openAddTeacher = document.getElementById('openAddTeacher');
+        const addTeacherSidebar = document.getElementById('addTeacherSidebar');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const cancelAdd = document.getElementById('cancelAdd');
+        const addTeacherForm = document.getElementById('addTeacherForm');
+        const avatarInput = document.getElementById('avatar');
+        const avatarPreview = document.getElementById('avatarPreview');
+
+        openAddTeacher.addEventListener('click', () => {
+            addTeacherSidebar.classList.add('active');
+        });
+
+        function closeSidebarHandler() {
+            addTeacherSidebar.classList.remove('active');
+            addTeacherForm.reset();
+            avatarPreview.src = '/static/images/default-avatar.png';
+        }
+
+        closeSidebar.addEventListener('click', closeSidebarHandler);
+        cancelAdd.addEventListener('click', closeSidebarHandler);
+
+        // Avatar preview
+        avatarInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Form submission
+        addTeacherForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            loader.style.display = 'block';
+
+            const formData = new FormData(this);
+            formData.append('user_type', 'teacher');
+
+            try {
+                const response = await fetch('/api/users/create-teacher/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    credentials: 'include',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const teacher = await response.json();
+                    // Reload page to show new teacher
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    if (error.detail) {
+                        alert('Xatolik: ' + error.detail);
+                    } else {
+                        const errorMessages = Object.entries(error)
+                            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                            .join('\n');
+                        alert('Xatolik yuz berdi:\n' + errorMessages);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Xatolik yuz berdi!');
+            } finally {
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+
+{% endblock %}

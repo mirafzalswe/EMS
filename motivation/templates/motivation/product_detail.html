@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width:600px;">
+  <div class="card shadow-sm">
+    <img src="{{ product.image.url }}" class="card-img-top" style="object-fit:cover; height:300px;" alt="{{ product.name }}">
+    <div class="card-body">
+      <h3 class="card-title">{{ product.name }}</h3>
+      <p class="card-text">{{ product.description }}</p>
+      <div class="mb-3 fw-bold">Цена: {{ product.price }} <i class="fas fa-coins text-warning"></i></div>
+      <a href="javascript:history.back()" class="btn btn-outline-secondary">Назад</a>
+    </div>
+  </div>
+</div>
+{% endblock %} 

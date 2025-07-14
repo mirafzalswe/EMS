@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Добавление расписания - Группа {{ group.name }}</title>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Добавление расписания для группы {{ group.name }}
+                    </h5>
+                    <a href="{% url 'group_detail' pk=pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Назад
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.classroom.id_for_label }}" class="form-label">Аудитория</label>
+                                {{ form.classroom }}
+                                <div class="invalid-feedback">
+                                    Пожалуйста, выберите аудиторию.
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Дни недели</label>
+                                <div class="form-check-group">
+                                    {% for day in form.days_of_week %}
+                                        <div class="form-check form-check-inline">
+                                            {{ day.tag }}
+                                            {{ day.choice_label }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="invalid-feedback">
+                                    Пожалуйста, выберите хотя бы один день недели.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.start_time.id_for_label }}" class="form-label">Время начала</label>
+                                {{ form.start_time }}
+                                <div class="invalid-feedback">
+                                    Пожалуйста, укажите время начала.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.end_time.id_for_label }}" class="form-label">Время окончания</label>
+                                {{ form.end_time }}
+                                <div class="invalid-feedback">
+                                    Пожалуйста, укажите время окончания.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Активное расписание
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    Сохранить расписание
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form.needs-validation');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    }
+
+    // Time input validation
+    const startTime = document.getElementById('{{ form.start_time.id_for_label }}');
+    const endTime = document.getElementById('{{ form.end_time.id_for_label }}');
+
+    if (startTime && endTime) {
+        startTime.addEventListener('change', function() {
+            if (startTime.value >= endTime.value && endTime.value) {
+                endTime.setCustomValidity('Время окончания должно быть позже времени начала');
+            } else {
+                endTime.setCustomValidity('');
+            }
+        });
+
+        endTime.addEventListener('change', function() {
+            if (startTime.value >= endTime.value && startTime.value) {
+                endTime.setCustomValidity('Время окончания должно быть позже времени начала');
+            } else {
+                endTime.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

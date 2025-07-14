@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>O'qiv markaz va filiallar ni boshqaruvi</title>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <div class="page-header mb-4">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h1 class="mb-0">
+                            <i class="fas fa-school me-2"></i>O'quv markazlar va filiallar
+                        </h1>
+                        <p class="text-muted mb-0">Ko'rish va barcha o'quv markazlar va filiallar ni boshqarish</p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="#" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addSchoolModal">
+                            <i class="fas fa-plus me-2"></i>O'quv markaz qo'shish
+                        </a>
+                        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBranchModal">
+                            <i class="fas fa-plus me-2"></i>Filial qo'shish
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+                <div class="messages mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>O'quv markazlar ro'yxati
+                        </h5>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="display: none;">
+                                <i class="fas fa-trash me-1"></i>Tanlanganlarni o'chirish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th>Nomi</th>
+                                    <th>Adres</th>
+                                    <th>Telefon</th>
+                                    <th>Email</th>
+                                    <th>Filial</th>
+                                    <th>Harakat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for school in schools %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input school-checkbox" value="{{ school.id }}">
+                                    </td>
+                                    <td>{{ school.name }}</td>
+                                    <td>{{ school.address }}</td>
+                                    <td>{{ school.phone }}</td>
+                                    <td>{{ school.email }}</td>
+                                    <td>
+                                        <strong>Filiallar: {{ school.branches.all|length }}</strong><br>
+                                        {% if school.branches.all %}
+                                            <ol style="margin-bottom:0; padding-left: 1.2em;">
+                                            {% for branch in school.branches.all %}
+                                                <li>
+                                                    <input type="checkbox" class="form-check-input branch-checkbox" value="{{ branch.id }}" style="margin-right: 6px;">
+                                                    {{ branch.name }} ({{ branch.address }})
+                                                </li>
+                                            {% endfor %}
+                                            </ol>
+                                        {% else %}
+                                            <span class="text-muted">Filiallar yo'q</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-danger" onclick="deleteSchool({{ school.id }}, '{{ school.name }}')" title="Удалить">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                                        <h5>O'quv markazlar topilmadi</h5>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно для добавления учебного центра -->
+            <div class="modal fade" id="addSchoolModal" tabindex="-1" aria-labelledby="addSchoolModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="post" action="">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addSchoolModalLabel">O'quv markaz qo'shish</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Nomi</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Adres</label>
+                                    <input type="text" class="form-control" name="address">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Telefon</label>
+                                    <input type="text" class="form-control" name="phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ortga</button>
+                                <button type="submit" class="btn btn-primary">Qo'shish</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно для добавления филиала -->
+            <div class="modal fade" id="addBranchModal" tabindex="-1" aria-labelledby="addBranchModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="post" action="">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addBranchModalLabel">Filial qo'shish</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">O'quv markaz</label>
+                                    <select class="form-select" name="school_id" required>
+                                        <option value="">O'quv markazni tanlang</option>
+                                        {% for school in schools %}
+                                            <option value="{{ school.id }}">{{ school.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Filial nomi</label>
+                                    <input type="text" class="form-control" name="branch_name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Adres</label>
+                                    <input type="text" class="form-control" name="branch_address">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Telefon</label>
+                                    <input type="text" class="form-control" name="branch_phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="branch_email">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ortga</button>
+                                <button type="submit" class="btn btn-primary">Qo'shish</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма для удаления -->
+            <form id="deleteSchoolForm" method="post" action="" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="school_id" id="deleteSchoolId">
+            </form>
+            <form id="bulkDeleteForm" method="post" action="" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="school_ids" id="bulkDeleteSchoolIds">
+            </form>
+            <form id="bulkDeleteBranchesForm" method="post" action="" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="branch_ids" id="bulkDeleteBranchIds">
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteSchool(schoolId, schoolName) {
+    if (confirm(`Вы уверены, что хотите удалить учебный центр "${schoolName}"? Это действие нельзя отменить.`)) {
+        document.getElementById('deleteSchoolId').value = schoolId;
+        document.getElementById('deleteSchoolForm').submit();
+    }
+}
+// Bulk delete functionality
+// (аналогично students_management.html, можно доработать по необходимости)
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const schoolCheckboxes = document.querySelectorAll('.school-checkbox');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    selectAllCheckbox.addEventListener('change', function() {
+        schoolCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkDeleteButton();
+    });
+    schoolCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllCheckbox();
+            updateBulkDeleteButton();
+        });
+    });
+    bulkDeleteBtn.addEventListener('click', function() {
+        const selectedIds = Array.from(schoolCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+        if (selectedIds.length === 0) {
+            alert('Выберите учебные центры для удаления');
+            return;
+        }
+        if (confirm(`Вы уверены, что хотите удалить ${selectedIds.length} учебных центров? Это действие нельзя отменить.`)) {
+            document.getElementById('bulkDeleteSchoolIds').value = selectedIds.join(',');
+            document.getElementById('bulkDeleteForm').submit();
+        }
+    });
+    function updateSelectAllCheckbox() {
+        const checkedCount = Array.from(schoolCheckboxes).filter(checkbox => checkbox.checked).length;
+        const totalCount = schoolCheckboxes.length;
+        if (checkedCount === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCount === totalCount) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+    function updateBulkDeleteButton() {
+        const checkedCount = Array.from(schoolCheckboxes).filter(checkbox => checkbox.checked).length;
+        if (checkedCount > 0) {
+            bulkDeleteBtn.style.display = 'inline-block';
+            bulkDeleteBtn.innerHTML = `<i class="fas fa-trash me-1"></i>Удалить выбранные (${checkedCount})`;
+        } else {
+            bulkDeleteBtn.style.display = 'none';
+        }
+    }
+
+    const branchCheckboxes = document.querySelectorAll('.branch-checkbox');
+    // Кнопка для массового удаления филиалов (можно добавить рядом с bulkDeleteBtn)
+    let bulkDeleteBranchesBtn = document.getElementById('bulkDeleteBranchesBtn');
+    if (!bulkDeleteBranchesBtn) {
+        bulkDeleteBranchesBtn = document.createElement('button');
+        bulkDeleteBranchesBtn.type = 'button';
+        bulkDeleteBranchesBtn.className = 'btn btn-outline-danger ms-2';
+        bulkDeleteBranchesBtn.id = 'bulkDeleteBranchesBtn';
+        bulkDeleteBranchesBtn.style.display = 'none';
+        bulkDeleteBranchesBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Удалить выбранные филиалы';
+        document.querySelector('.btn-group.btn-group-sm').appendChild(bulkDeleteBranchesBtn);
+    }
+    branchCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkDeleteBranchesButton);
+    });
+    function updateBulkDeleteBranchesButton() {
+        const checkedCount = Array.from(branchCheckboxes).filter(cb => cb.checked).length;
+        if (checkedCount > 0) {
+            bulkDeleteBranchesBtn.style.display = 'inline-block';
+            bulkDeleteBranchesBtn.innerHTML = `<i class=\"fas fa-trash me-1\"></i>Удалить выбранные филиалы (${checkedCount})`;
+        } else {
+            bulkDeleteBranchesBtn.style.display = 'none';
+        }
+    }
+    bulkDeleteBranchesBtn.addEventListener('click', function() {
+        const selectedIds = Array.from(branchCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        if (selectedIds.length === 0) {
+            alert('Выберите филиалы для удаления');
+            return;
+        }
+        if (confirm(`Вы уверены, что хотите удалить ${selectedIds.length} филиал(ов)? Это действие нельзя отменить.`)) {
+            document.getElementById('bulkDeleteBranchIds').value = selectedIds.join(',');
+            document.getElementById('bulkDeleteBranchesForm').submit();
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Sotib olish tarixi</title>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:900px;">
+  <h2 class="mb-4 text-center">Sotib olishlar tarixi - {{ count }}</h2>
+  <table class="table table-bordered table-striped text-center">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Student</th>
+        <th>Tovar</th>
+        <th>Narx</th>
+        <th>Sotib olish sanasi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for purchase in purchases %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ purchase.student.get_full_name }}</td>
+        <td>{{ purchase.product.name }}</td>
+        <td>{{ purchase.product.price }}</td>
+        <td>{{ purchase.purchased_at|date:'d.m.Y H:i' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

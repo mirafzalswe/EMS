@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Create Assignment</title>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="container-fluid mx-3">
+        <div class="card assignment-card"
+        <div class="row justify-content-center">
+                
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-tasks me-3"></i>
+                            <h3 class="mb-0">Create New Assignment</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="POST" enctype="multipart/form-data" novalidate class="assignment-form">
+                            {% csrf_token %}
+                            
+                            {% for field in form %}
+                                <div class="form-group mb-4">
+                                    <label for="{{ field.id_for_label }}" class="form-label">
+                                        {{ field.label }}
+                                        {% if field.field.required %}
+                                            <span class="required-mark">*</span>
+                                        {% endif %}
+                                    </label>
+                                    
+                                    {% if field.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {{ field }}
+                                    
+                                    {% if field.help_text %}
+                                        <div class="help-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            {{ field.help_text }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
+                            <div class="form-actions">
+                                <a href="{% url 'assignment_list' group_id=group.id %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Create Assignment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        min-height: calc(100vh - 60px);
+        background-color: #f8f9fa;
+        padding: 2rem 0;
+    }
+
+    .assignment-card {
+        background: white;
+    }
+
+
+
+    .card-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1.5rem;
+    }
+
+    .card-header i {
+        font-size: 1.5rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+
+    .required-mark {
+        color: #e53e3e;
+        margin-left: 4px;
+    }
+
+    .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+    }
+
+    textarea.form-control {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .error-message {
+        color: #e53e3e;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background-color: #fff5f5;
+        border-radius: 6px;
+    }
+
+    .help-text {
+        color: #718096;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78, 115, 223, 0.2);
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+        border-color: #cbd5e0;
+    }
+
+    /* Custom file input styling */
+    input[type="file"] {
+        padding: 0.75rem;
+        background-color: #f8f9fa;
+        border: 2px dashed #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    input[type="file"]:hover {
+        border-color: #4e73df;
+    }
+
+    /* DateTime input styling */
+    input[type="datetime-local"] {
+        padding: 0.75rem 1rem;
+        width: 100%;
+    }
+
+    /* Alert styling */
+    .alert {
+        border: none;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .alert-success {
+        background-color: #f0fff4;
+        color: #2f855a;
+    }
+
+    .alert-danger {
+        background-color: #fff5f5;
+        color: #e53e3e;
+    }
+
+    .alert i {
+        font-size: 1.1rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .page-container {
+            padding: 1rem 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Admin korzina</title>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Magazin - Admin saxifasi</h2>
+    <a href="{% url 'motivation:product_create' %}" class="btn btn-success">+ Tovar qo'shish</a>
+  </div>
+  <div class="row g-4 mb-5">
+    {% for product in products %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text small text-muted">{{ product.description|truncatechars:80 }}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold">{{ product.price }} <i class="fas fa-coins text-warning"></i></span>
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="delete_product_id" value="{{ product.id }}">
+              <button type="submit" class="btn btn-outline-danger btn-sm" title="Удалить"><i class="fas fa-trash"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted">Нет товаров</div>
+    {% endfor %}
+  </div>
+  <div class="row">
+        
+    <div class="col-md-6">
+        <h4>Talabalar va Coin lar</h4>
+        <ul class="list-group mb-4">
+          {% for s in students_data|slice:":3" %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ s.student.get_full_name }} <span class="badge bg-primary">{{ s.available_points|default:0 }} <i class="fas fa-coins"></i></span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted">Talabalar yo'q</li>
+          {% endfor %}
+        </ul>
+        <a href="{% url 'motivation:admin_students' %}" class="btn btn-outline-primary btn-sm">Barcha talabalarni ko'rsatish</a>
+      </div>
+      <div class="col-md-6">
+        <h4>Sotib olishlar tarixi</h4>
+        <ul class="list-group mb-4">
+          {% for purchase in purchases|slice:":3" %}
+          <li class="list-group-item small">
+            <b>{{ purchase.student.get_full_name }}</b> <b>{{ purchase.product.name }}</b> ni {{ purchase.product.price }}ta coinga sotib oldi  <i class="fas fa-coins text-warning"></i> <span class="text-muted">({{ purchase.purchased_at|date:'d.m.Y H:i' }})</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted">Покупок нет</li>
+          {% endfor %}
+        </ul>
+        <a href="{% url 'motivation:admin_purchases' %}" class="btn btn-outline-primary btn-sm">Barcha tarixni ko'rsatish</a>
+      </div>
+  <div class="row mt-4">
+    <div class="col-12">
+      <h4>Sotib olingan tovarlar - Korzina bor tovarlar soni <span class="badge bg-secondary">{{ purchases_in_cart|length }}</span></h4>
+      <ul class="list-group mb-4">
+        {% for purchase in purchases_in_cart %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span><b>{{ purchase.student.get_full_name }}</b>: {{ purchase.product.name }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">Кorzika bo'sh</li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'motivation:admin_cart' %}" class="btn btn-outline-primary btn-sm">Korzinaga o'tish</a>
+    </div>
+  </div>
+</div>
+{% endblock %} 

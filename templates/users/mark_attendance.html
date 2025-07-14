@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Davomat belgilash - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Davomat belgilash</h4>
+                </div>
+                <div class="card-body">
+                    {% for lesson in lessons %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ lesson.schedule.group.name }}</h5>
+                            <small class="text-muted">{{ lesson.date|date:"d.m.Y" }} {{ lesson.start_time|time:"H:i" }} - {{ lesson.end_time|time:"H:i" }}</small>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="lesson_id" value="{{ lesson.id }}">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Talaba</th>
+                                                <th>Davomat</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for student in lesson.schedule.group.students.all %}
+                                            <tr>
+                                                <td>{{ student.get_full_name }}</td>
+                                                <td>
+                                                    <select class="form-select" name="attendance_{{ student.id }}">
+                                                        <option value="present">Qatnashgan</option>
+                                                        <option value="late">Kechikkan</option>
+                                                        <option value="absent">Qatnashmagan</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Davomatni saqlash</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info">
+                        Bugun darslar mavjud emas
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

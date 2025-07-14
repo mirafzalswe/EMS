@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Market - Student</h2>
+    <div class="fw-bold">Mening coin larim: <span class="badge bg-warning text-dark">{{ points }} <i class="fas fa-coins"></i></span></div>
+  </div>
+  <div class="row g-4 mb-5">
+    {% for product in products %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <a href="{% url 'motivation:product_detail' product.id %}"><img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"></a>
+        <div class="card-body">
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text small text-muted">{{ product.description|truncatechars:80 }}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold">{{ product.price }} <i class="fas fa-coins text-warning"></i></span>
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="buy_product_id" value="{{ product.id }}">
+              <button type="submit" class="btn btn-primary btn-sm" {% if points < product.price %}disabled{% endif %}>Sotib olish</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted">Tovarlar yo'q</div>
+    {% endfor %}
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h4>Mening haridlarim</h4>
+      <ul class="list-group mb-4">
+        {% for purchase in purchases %}
+        <li class="list-group-item small">
+          <b>{{ purchase.product.name }}</b> за {{ purchase.product.price }} <i class="fas fa-coins text-warning"></i> <span class="text-muted">({{ purchase.purchased_at|date:'d.m.Y H:i' }})</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted"></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h4>Корзина <span class="badge bg-secondary">{{ cart_purchases|length }}</span></h4>
+      <ul class="list-group mb-4">
+        {% for purchase in cart_purchases %}
+        <li class="list-group-item small d-flex justify-content-between align-items-center">
+          {{ purchase.product.name }}
+          <!-- Можно добавить кнопку "Получил" здесь, если нужно -->
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">Korzina bo'sh</li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'motivation:cart' %}" class="btn btn-outline-primary btn-sm">Korzinaga o'tish</a>
+    </div>
+  </div>
+</div>
+{% endblock %} 

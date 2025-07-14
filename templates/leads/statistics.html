@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Статистика лидов{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+    .progress-bar {
+        height: 10px;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="fas fa-chart-pie me-2"></i> Статистика лидов
+                </h1>
+                <a href="{% url 'kanban_board' %}" class="btn btn-primary">
+                    <i class="fas fa-columns me-1"></i> Вернуться к доске
+                </a>
+            </div>
+            
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card stat-card h-100 bg-primary bg-opacity-10">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-primary">Всего лидов</h6>
+                                    <h2 class="mb-0">{{ total_leads }}</h2>
+                                </div>
+                                <div class="text-primary stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <small class="text-muted">За последние 7 дней: <b>{{ leads_week }}</b></small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card stat-card h-100 bg-success bg-opacity-10">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-success">Конвертировано</h6>
+                                    <h2 class="mb-0">{{ converted_leads }}</h2>
+                                </div>
+                                <div class="text-success stat-icon">
+                                    <i class="fas fa-user-graduate"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <small class="text-muted">Процент конверсии: <b>{{ conversion_rate|floatformat:1 }}%</b></small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card stat-card h-100 bg-info bg-opacity-10">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-info">За месяц</h6>
+                                    <h2 class="mb-0">{{ leads_month }}</h2>
+                                </div>
+                                <div class="text-info stat-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <small class="text-muted">В среднем в день: <b>{{ leads_month|divisibleby:30|floatformat:1 }}</b></small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card stat-card h-100 bg-warning bg-opacity-10">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-warning">Источники</h6>
+                                    <h2 class="mb-0">{{ sources_stats|length }}</h2>
+                                </div>
+                                <div class="text-warning stat-icon">
+                                    <i class="fas fa-tags"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <small class="text-muted">Топ: <b>{{ sources_stats.0.source__name|default:"Нет данных" }}</b></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Status Distribution -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-columns me-1"></i> Распределение по статусам
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <canvas id="statusChart" height="250"></canvas>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Статус</th>
+                                            <th>Количество</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for status in status_stats %}
+                                        <tr>
+                                            <td>
+                                                {% if status.board_column == 'new' %}
+                                                    <span class="badge bg-primary">Новые студенты</span>
+                                                {% elif status.board_column == 'waiting' %}
+                                                    <span class="badge bg-warning text-dark">В режиме ожидания</span>
+                                                {% elif status.board_column == 'trial' %}
+                                                    <span class="badge bg-info">На пробном уроке</span>
+                                                {% elif status.board_column == 'attending' %}
+                                                    <span class="badge bg-success">Посещают занятия</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ status.count }}</td>
+                                            <td>{{ status.count|divisibleby:total_leads|floatformat:1 }}%</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Source Distribution -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tags me-1"></i> Распределение по источникам
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <canvas id="sourceChart" height="250"></canvas>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Источник</th>
+                                            <th>Количество</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for source in sources_stats %}
+                                        <tr>
+                                            <td>{{ source.source__name|default:"Не указан" }}</td>
+                                            <td>{{ source.count }}</td>
+                                            <td>{{ source.count|divisibleby:total_leads|floatformat:1 }}%</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conversion Rate Progress -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-1"></i> Показатель конверсии
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                            <div class="display-4 fw-bold text-info">{{ conversion_rate|floatformat:1 }}%</div>
+                            <p class="text-muted mb-0">Общая конверсия</p>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Прогресс конверсии</span>
+                                    <span>{{ converted_leads }} из {{ total_leads }}</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" 
+                                        style="width: {{ conversion_rate }}%" 
+                                        aria-valuenow="{{ conversion_rate }}" 
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 text-center">
+                                        <div class="h5 mb-0">100%</div>
+                                        <small class="text-muted">Цель</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 text-center bg-light">
+                                        <div class="h5 mb-0">{{ conversion_rate|floatformat:1 }}%</div>
+                                        <small class="text-muted">Текущий</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 text-center">
+                                        <div class="h5 mb-0">{{ 100|add:"-"|add:conversion_rate|floatformat:1 }}%</div>
+                                        <small class="text-muted">Осталось</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusColors = {
+            'new': '#0d6efd',      // primary
+            'waiting': '#ffc107',  // warning
+            'trial': '#0dcaf0',    // info
+            'attending': '#198754' // success
+        };
+        
+        const statusLabels = {
+            'new': 'Новые студенты',
+            'waiting': 'В режиме ожидания',
+            'trial': 'На пробном уроке',
+            'attending': 'Посещают занятия'
+        };
+        
+        const statusData = [];
+        const statusLabelsArray = [];
+        const statusColorsArray = [];
+        
+        {% for status in status_stats %}
+            statusData.push({{ status.count }});
+            statusLabelsArray.push(statusLabels['{{ status.board_column }}']);
+            statusColorsArray.push(statusColors['{{ status.board_column }}']);
+        {% endfor %}
+        
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: statusLabelsArray,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: statusColorsArray,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // Source Chart
+        const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+        const sourceData = [];
+        const sourceLabels = [];
+        const sourceColors = [];
+        
+        const colorPalette = [
+            '#36a2eb', '#ff6384', '#4bc0c0', '#ffcd56', 
+            '#9966ff', '#ff9f40', '#c9cbcf', '#7e57c2',
+            '#26a69a', '#ec407a', '#ab47bc', '#5c6bc0'
+        ];
+        
+        {% for source in sources_stats %}
+            sourceData.push({{ source.count }});
+            sourceLabels.push('{{ source.source__name|default:"Не указан" }}');
+            sourceColors.push(colorPalette[{{ forloop.counter0 }} % colorPalette.length]);
+        {% endfor %}
+        
+        new Chart(sourceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: sourceLabels,
+                datasets: [{
+                    data: sourceData,
+                    backgroundColor: sourceColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

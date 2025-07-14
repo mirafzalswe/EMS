@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Guruh qo'shish</title>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-header text-white">
+                    <h3 class="text-center font-weight-light my-4">Yangi Guruh qo'shish</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="messages mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="form-floating mb-3">
+                            <input class="form-control" type="text" name="name" placeholder="Group Name" required />
+                            <label>Guruh nomi</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select class="form-select" name="course" required>
+                                <option value="">Kurs tanlash</option>
+                                {% for course in courses %}
+                                    <option value="{{ course.id }}">{{ course.name }} ({{ course.subject.name }})</option>
+                                {% endfor %}
+                            </select>
+                            <label>Kurs</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select class="form-select" name="branch" required>
+                                <option value="">Filial tanlash</option>
+                                {% for branch in branches %}
+                                    <option value="{{ branch.id }}">{{ branch.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <label>Filial</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select class="form-select" name="teacher" required>
+                                <option value="">O'qituvchi tanlash</option>
+                                {% for teacher in teachers %}
+                                    <option value="{{ teacher.id }}">{{ teacher.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <label>O'qituvchi</label>
+                        </div>
+
+                    
+
+                        <div class="form-floating mb-3">
+                            <input class="form-control" type="number" name="max_students" placeholder="Max Students" value="15" required />
+                            <label>Max Talabalar</label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Aktiv guruh
+                            </label>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                            <a class="btn btn-warning" href="{% url 'admin_dashboard' %}">Ortga</a>
+                            <button class="btn btn-info" type="submit">Qo'shish</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: all 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.form-floating > .form-control {
+    padding: 1rem 0.75rem;
+}
+.form-floating > label {
+    padding: 1rem 0.75rem;
+}
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+.alert {
+    border-radius: 0.5rem;
+}
+</style>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %} 

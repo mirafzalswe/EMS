@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'teacher_dashboard' %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-book"></i> My Courses
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-users"></i> Students
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-tasks"></i> Assignments
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-calendar-alt"></i> Schedule
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-chart-line"></i> Grades
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_title %}Teacher Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Total Groups</h5>
+                <h2>{{ groups.count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Total Students</h5>
+                <h2>{{ students.count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Upcoming Classes</h5>
+                <h2>{{ upcoming_classes.count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">My Groups</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for group in groups %}
+                    <li class="list-group-item">
+                        <strong>{{ group.name }}</strong><br>
+                        Course: {{ group.course.name }}<br>
+                        Students: {{ group.enrollments.count }}<br>
+                        Schedule: {{ group.schedule.day_of_week }} at {{ group.schedule.start_time }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Upcoming Classes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for class in upcoming_classes %}
+                    <li class="list-group-item">
+                        <strong>{{ class.schedule.group.name }}</strong><br>
+                        {{ class.date }} at {{ class.start_time }}<br>
+                        Room: {{ class.schedule.classroom.name }}<br>
+                        <span class="badge {% if class.is_conducted %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if class.is_conducted %}Conducted{% else %}Pending{% endif %}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Recent Assignments</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for assignment in recent_assignments %}
+                    <li class="list-group-item">
+                        <strong>{{ assignment.title }}</strong><br>
+                        Group: {{ assignment.group.name }}<br>
+                        Due: {{ assignment.due_date }}<br>
+                        Status: <span class="badge {% if assignment.status == 'published' %}bg-success{% else %}bg-warning{% endif %}">
+                            {{ assignment.get_status_display }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Student Attendance</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for attendance in recent_attendance %}
+                    <li class="list-group-item">
+                        <strong>{{ attendance.student.get_full_name }}</strong><br>
+                        Group: {{ attendance.lesson.schedule.group.name }}<br>
+                        Status: <span class="badge {% if attendance.status == 'present' %}bg-success{% elif attendance.status == 'late' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ attendance.get_status_display }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="#" class="btn btn-primary">Create Assignment</a>
+                    <a href="#" class="btn btn-success">Mark Attendance</a>
+                    <a href="#" class="btn btn-info">Schedule Class</a>
+                    <a href="#" class="btn btn-warning">Send Announcement</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

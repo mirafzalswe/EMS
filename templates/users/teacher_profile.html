@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <title> O'qituvchi profili - EduTrack </title>
+{% endblock %}
+
+{% block content %}
+        <div class="py-4 px-3 mt-5">
+            <div class="row">
+                <!-- Teacher Information -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">Shaxsiy ma'lumotlar</h6>
+                            <a href="#" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i> Tahrirlash
+                            </a>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="position-relative d-inline-block mb-3">
+                                <img src="{{ teacher.avatar.url|default:'/static/users/default-avatar.png' }}" 
+                                     class="rounded-circle" 
+                                     alt="O'qituvchi rasmi" 
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            </div>
+                            <h4 class="mb-2">{{ teacher.get_full_name }}</h4>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-envelope me-2"></i>{{ teacher.email }}
+                            </p>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-phone me-2"></i>{{ teacher.phone }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teaching Groups -->
+                <div class="col-lg-8 col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">O'qitayotgan guruhlar</h6>
+                
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Guruh nomi</th>
+                                            <th>Kurs</th>
+                                            <th class="d-none d-md-table-cell">Talabalar soni</th>
+                                            <th class="d-none d-lg-table-cell">Branch </th>
+                                            <th>Holati</th>
+                                            <th class="text-end" style="min-width: 100px;">Harakatlar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for group in groups %}
+                                        <tr>
+                                            <td>{{ group.name }}</td>
+                                            <td>{{ group.course.name }}</td>
+                                            <td class="d-none d-lg-table-cell">{{ group.students_count }}/{{ group.max_students }}</td>
+                                            <td class="d-none d-lg-table-cell">{{ group.branch.name }}</td>
+                                            <td>
+                                                <span class="badge {% if group.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {% if group.is_active %}Faol{% else %}Faol emas{% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'group_detail' group.id %}" class="btn btn-info me-2" title="Ko'rish">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="#" class="btn btn-warning" title="Tahrirlash">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="fas fa-users fa-2x mb-3"></i>
+                                                    <p>Guruhlar mavjud emas</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Upcoming Classes -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">Kelgusi darslar</h6>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Dars qo'shish
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                {% for lesson in upcoming_lessons %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <h6 class="mb-1">{{ lesson.schedule.group.name }}</h6>
+                                        <span class="badge bg-primary">{{ lesson.date|date:"M d, Y" }}</span>
+                                    </div>
+                                    <p class="mb-1">
+                                        <i class="fas fa-clock me-2"></i>{{ lesson.start_time|time:"H:i" }} - {{ lesson.end_time|time:"H:i" }}
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-door-open me-2"></i>{{ lesson.schedule.classroom.name }}
+                                    </small>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-calendar fa-2x mb-3"></i>
+                                        <p>Kelgusi darslar mavjud emas</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Assignments -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">So'nggi topshiriqlar</h6>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Topshiriq qo'shish
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                {% for assignment in recent_assignments %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <h6 class="mb-1">{{ assignment.title }}</h6>
+                                        <span class="badge {% if assignment.due_date < now %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ assignment.due_date|date:"M d, Y" }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-1">{{ assignment.description|truncatechars:100 }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-users me-2"></i>{{ assignment.group.name }}
+                                    </small>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-tasks fa-2x mb-3"></i>
+                                        <p>Topshiriqlar mavjud emas</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Student Attendance -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">Talabalar davomati</h6>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="fas fa-check"></i> Davomat belgilash
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                {% for record in recent_attendance %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <h6 class="mb-1">{{ record.student.get_full_name }}</h6>
+                                        <span class="badge {% if record.status == 'present' %}bg-success{% elif record.status == 'late' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {% if record.status == 'present' %}Qatnashgan
+                                            {% elif record.status == 'late' %}Kechikkan
+                                            {% else %}Qatnashmagan{% endif %}
+                                        </span>
+                                    </div>
+                                    <p class="mb-1">
+                                        <i class="fas fa-calendar me-2"></i>{{ record.lesson.date|date:"M d, Y" }}
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-users me-2"></i>{{ record.lesson.schedule.group.name }}
+                                    </small>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-user-check fa-2x mb-3"></i>
+                                        <p>Davomat yozuvlari mavjud emas</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salary Information -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Ish haqi ma'lumotlari</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if latest_salary %}
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">Oxirgi oy</h6>
+                                        <span class="badge bg-primary">{{ latest_salary.period_start|date:"M Y" }} - {{ latest_salary.period_end|date:"M Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">Asosiy ish haqi</h6>
+                                        <span class="text-primary">{{ latest_salary.base_salary }} so'm</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">Jami ish haqi</h6>
+                                        <span class="text-success">{{ latest_salary.total_salary }} so'm</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">To'lov holati</h6>
+                                        <span class="badge {% if latest_salary.is_paid %}bg-success{% else %}bg-warning{% endif %}">
+                                            {% if latest_salary.is_paid %}To'langan{% else %}Kutilmoqda{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-money-bill-wave fa-2x mb-3"></i>
+                                    <p>Ish haqi ma'lumotlari mavjud emas</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Tezkor harakatlar</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center flex-wrap">
+                                <a href="#" class="btn btn-primary m-2">
+                                    <i class="fas fa-plus me-2"></i> Topshiriq yaratish
+                                </a>
+                                <a href="#" class="btn btn-success m-2">
+                                    <i class="fas fa-check me-2"></i> Davomat belgilash
+                                </a>
+                                <a href="#" class="btn btn-info m-2">
+                                    <i class="fas fa-calendar-plus me-2"></i> Dars jadvalini belgilash
+                                </a>
+                                <a href="#" class="btn btn-warning m-2">
+                                    <i class="fas fa-bullhorn me-2"></i> E'lon yuborish
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+
+{% endblock %}
+
+{% endblock %} 

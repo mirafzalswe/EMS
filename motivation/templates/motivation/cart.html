@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Student korzina</title>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:600px;">
+  <h2 class="mb-4">Корзина</h2>
+  <ul class="list-group mb-4">
+    {% for purchase in purchases %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <span>{{ purchase.product.name }}</span>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="receive_purchase_id" value="{{ purchase.id }}">
+      </form>
+    </li>
+    {% empty %}
+    <li class="list-group-item text-muted">Корзина пуста</li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'motivation:student_store' %}" class="btn btn-outline-primary">Назад в магазин</a>
+</div>
+{% endblock %}

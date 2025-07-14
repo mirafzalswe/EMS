@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование лида - {{ lead.first_name }} {{ lead.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">
+            <i class="fas fa-user-edit me-2"></i> 
+            Редактирование студента: {{ lead.first_name }} {{ lead.last_name }}
+        </h1>
+        <a href="{% url 'kanban_board' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к доске
+        </a>
+    </div>
+    
+    <div class="row">
+        <!-- Lead Info and Edit Form -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-1"></i> Информация о студенте
+                    </h5>
+                    <span class="badge bg-light text-primary">
+                        {{ lead.get_board_column_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'edit_lead' lead.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_first_name" class="form-label">Имя *</label>
+                                <input type="text" name="first_name" id="id_first_name" 
+                                       class="form-control" value="{{ form.first_name.value }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_last_name" class="form-label">Фамилия *</label>
+                                <input type="text" name="last_name" id="id_last_name" 
+                                       class="form-control" value="{{ form.last_name.value }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_phone" class="form-label">Телефон *</label>
+                                <input type="tel" name="phone" id="id_phone" 
+                                       class="form-control" value="{{ form.phone.value }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_email" class="form-label">Email</label>
+                                <input type="email" name="email" id="id_email" 
+                                       class="form-control" value="{{ form.email.value|default:'' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_gender" class="form-label">Пол</label>
+                                <select name="gender" id="id_gender" class="form-select">
+                                    <option value="" {% if not form.gender.value %}selected{% endif %}>Не указано</option>
+                                    <option value="male" {% if form.gender.value == 'male' %}selected{% endif %}>Мужской</option>
+                                    <option value="female" {% if form.gender.value == 'female' %}selected{% endif %}>Женский</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_source" class="form-label">Источник *</label>
+                                <select name="source" id="id_source" class="form-select" required>
+                                    <option value="">Выберите источник</option>
+                                    {% for source in form.fields.source.queryset %}
+                                        <option value="{{ source.id }}" 
+                                                {% if form.source.value == source.id %}selected{% endif %}>
+                                            {{ source.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_interested_course" class="form-label">Интересующий курс</label>
+                            <select name="interested_course" id="id_interested_course" class="form-select">
+                                <option value="">Не выбрано</option>
+                                {% for course in form.fields.interested_course.queryset %}
+                                    <option value="{{ course.id }}" 
+                                            {% if form.interested_course.value == course.id %}selected{% endif %}>
+                                        {{ course.name }} ({{ course.subject.name }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="id_notes" class="form-label">Примечания</label>
+                            <textarea name="notes" id="id_notes" class="form-control" rows="3">{{ form.notes.value|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'kanban_board' %}" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Activity History -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-1"></i> История активности
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for activity in activities %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge 
+                                        {% if activity.activity_type == 'status_change' %}bg-primary
+                                        {% elif activity.activity_type == 'note_added' %}bg-info
+                                        {% elif activity.activity_type == 'group_assignment' %}bg-success
+                                        {% elif activity.activity_type == 'contact' %}bg-warning
+                                        {% endif %} mb-1">
+                                        {{ activity.get_activity_type_display }}
+                                    </span>
+                                    <p class="mb-0">{{ activity.description }}</p>
+                                </div>
+                                <small class="text-muted">
+                                    {{ activity.created_at|date:"d.m.Y H:i" }}<br>
+                                    {{ activity.performed_by.get_full_name }}
+                                </small>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4">
+                            <i class="fas fa-info-circle d-block mb-2" style="font-size: 2rem;"></i>
+                            История активности пуста
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions Sidebar -->
+        <div class="col-lg-4">
+            <!-- Add Note -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sticky-note me-1"></i> Добавить заметку
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'add_lead_note' lead.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_note" class="form-label">Текст заметки *</label>
+                            <textarea name="note" id="id_note" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-plus me-1"></i> Добавить заметку
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Assign to Group -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-1"></i> Назначить в группу
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'assign_lead_to_group' lead.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_group" class="form-label">Группа *</label>
+                            <select name="group" id="id_group" class="form-select" required>
+                                <option value="">Выберите группу</option>
+                                {% for group in groups %}
+                                    <option value="{{ group.id }}">
+                                        {{ group.name }} - {{ group.course.name }} 
+                                        ({{ group.students_count }}/{{ group.max_students }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_notes" class="form-label">Примечания</label>
+                            <textarea name="notes" id="id_notes" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-user-plus me-1"></i> Назначить в группу
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

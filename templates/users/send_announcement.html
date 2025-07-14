@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}E'lon yuborish - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">E'lon yuborish</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Sarlavha</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="groups" class="form-label">Guruhlar</label>
+                            <select class="form-select" id="groups" name="groups" multiple required>
+                                {% for group in groups %}
+                                <option value="{{ group.id }}">{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Bir nechta guruhni tanlash uchun Ctrl (Windows) yoki Command (Mac) tugmasini bosib ushlab turib tanlang</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">E'lon matni</label>
+                            <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Ahamiyati</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="normal">Oddiy</option>
+                                <option value="important">Muhim</option>
+                                <option value="urgent">Zarur</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="send_email" name="send_email">
+                                <label class="form-check-label" for="send_email">
+                                    Talabalarga elektron pochta orqali xabar yuborish
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">E'lonni yuborish</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

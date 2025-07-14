@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }} - Discovery LC</title>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="row mb-3 mt-5">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 bg-success bg-opacity-10 mb-2">
+                        <div class="card-body d-flex flex-column align-items-start">
+                            <span class="text-secondary fw-bold fs-5">Balansida malag'i borlarning umumiy summasi:</span>
+                            <span class="fs-4 fw-bold text-secondary">{{ total_profit|floatformat:0 }} сум</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 bg-danger bg-opacity-10 mb-2">
+                        <div class="card-body d-flex flex-column align-items-start">
+                            <span class="text-danger fw-bold fs-5">Umumiy qarzlar summasi:</span>
+                            <span class="fs-4 fw-bold text-danger">{{ total_debt|floatformat:0 }} сум</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-money-bill-wave me-2"></i>
+                        {{ title }}
+                    </h4>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#autoWithdrawModal">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Автосписание
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Добавить платеж
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>№</th>
+                                    <th>Студент</th>
+                                    <th>Курс</th>
+                                    <th>Баланс</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student_data in students_data %}
+                                <tr data-bs-toggle="collapse" data-bs-target="#payments-{{ student_data.student.id }}" aria-expanded="false" aria-controls="payments-{{ student_data.student.id }}" style="cursor:pointer;">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ student_data.student.avatar.url|default:'/static/users/default.png' }}" 
+                                                 alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                                            <div>
+                                                <strong>{{ student_data.student.get_full_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ student_data.student.phone|default:"Телефон не указан" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if student_data.enrollments %}
+                                            {% for enrollment in student_data.enrollments %}
+                                                <span class="badge bg-info">{{ enrollment.group.course.name }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Не записан</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if student_data.is_positive %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                            {{ student_data.balance|floatformat:0 }} сум
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                    onclick="addPayment({{ student_data.student.id }}, '{{ student_data.student.get_full_name }}')">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                            <a href="{% url 'payment_history' student_data.student.id %}" 
+                                               class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-warning btn-sm" 
+                                                    onclick="manualWithdraw({{ student_data.student.id }}, '{{ student_data.student.get_full_name }}', {{ student_data.balance|floatformat:0 }})">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="collapse bg-light" id="payments-{{ student_data.student.id }}">
+                                    <td colspan="6">
+                                        <div class="p-2">
+                                            <strong>Группы и будущие оплаты:</strong>
+                                            {% for g in student_data.grouped_payments %}
+                                                <div class="mb-2">
+                                                    <div class="fw-bold mb-1">Группа: {{ g.group.name }}</div>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered align-middle mb-0">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Дата оплаты</th>
+                                                                    <th>Сумма</th>
+                                                                    <th>Статус</th>
+                                                                    <th>Действие</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {% for pay in g.payments %}
+                                                                <tr>
+                                                                    <td>{{ pay.payment_date|date:'d.m.Y' }}</td>
+                                                                    <td>{{ pay.amount|floatformat:0 }} сум</td>
+                                                                    <td>
+                                                                        {% if pay.status == 'paid' %}
+                                                                            <span class="badge bg-success">Оплачено</span>
+                                                                        {% elif pay.status == 'overdue' %}
+                                                                            <span class="badge bg-danger">Просрочено</span>
+                                                                        {% else %}
+                                                                            <span class="badge bg-secondary">Ожидает оплаты</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                    <td>
+                                                                        <button class="btn btn-sm btn-success"
+                                                                            onclick="markPaid({{ pay.id|default:'null' }}, this, {{ student_data.student.id }}, {{ g.group.id }}, '{{ pay.payment_date|date:'Y-m-d' }}', '{{ pay.amount }}')"
+                                                                            {% if pay.status == 'paid' %}disabled{% endif %}>
+                                                                            {% if pay.status == 'paid' %}<i class="fas fa-check-circle"></i> Оплачено{% else %}Оплатил{% endif %}
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            {% empty %}
+                                                                <tr><td colspan="4" class="text-center text-muted">Нет будущих оплат</td></tr>
+                                                            {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            {% empty %}
+                                                <div class="text-muted">Нет активных групп</div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Студенты не найдены</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления платежа -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить платеж</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addPaymentForm" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Студент</label>
+                        <input type="text" class="form-control" id="studentName" readonly>
+                        <input type="hidden" id="studentId" name="student_id">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сумма (сум)</label>
+                        <input type="number" class="form-control" name="amount" required min="1" step="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Способ оплаты</label>
+                        <select class="form-select" name="payment_method">
+                            <option value="cash">Наличные</option>
+                            <option value="bank_transfer">Банковский перевод</option>
+                            <option value="credit_card">Кредитная карта</option>
+                            <option value="online_payment">Онлайн оплата</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Примечания</label>
+                        <textarea class="form-control" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить платеж</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для ручного списания -->
+<div class="modal fade" id="manualWithdrawModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Списание средств</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="manualWithdrawForm" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Студент</label>
+                        <input type="text" class="form-control" id="withdrawStudentName" readonly>
+                        <input type="hidden" id="withdrawStudentId" name="student_id">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Текущий баланс</label>
+                        <input type="text" class="form-control" id="currentBalance" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сумма списания (сум)</label>
+                        <input type="number" class="form-control" name="amount" required min="1" step="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Причина списания</label>
+                        <textarea class="form-control" name="notes" rows="3" placeholder="Укажите причину списания"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-warning">Списать средства</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для автосписания -->
+<div class="modal fade" id="autoWithdrawModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Автоматическое списание</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Выполнить автоматическое списание стоимости курсов для всех студентов, которые не оплатили за текущий месяц?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Это действие нельзя отменить!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form method="post" action="{% url 'auto_withdraw' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">Выполнить автосписание</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addPayment(studentId, studentName) {
+    document.getElementById('studentId').value = studentId;
+    document.getElementById('studentName').value = studentName;
+    document.getElementById('addPaymentForm').action = `/api/finance/add-payment/${studentId}/`;
+    new bootstrap.Modal(document.getElementById('addPaymentModal')).show();
+}
+
+function manualWithdraw(studentId, studentName, balance) {
+    document.getElementById('withdrawStudentId').value = studentId;
+    document.getElementById('withdrawStudentName').value = studentName;
+    document.getElementById('currentBalance').value = balance + ' сум';
+    document.getElementById('manualWithdrawForm').action = `/api/finance/manual-withdraw/${studentId}/`;
+    new bootstrap.Modal(document.getElementById('manualWithdrawModal')).show();
+}
+
+function markPaid(paymentId, btn, studentId, groupId, paymentDate, amount) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ...';
+    let url, method, body;
+    if (paymentId) {
+        url = `/api/finance/future-payments/status/${paymentId}/`;
+        method = 'POST';
+        body = JSON.stringify({status: 'paid'});
+    } else {
+        url = `/api/finance/future-payments/`;
+        method = 'POST';
+        body = JSON.stringify({
+            student: studentId,
+            group: groupId,
+            payment_date: paymentDate,
+            amount: amount,
+            status: 'paid'
+        });
+    }
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: body
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'paid') {
+            btn.parentElement.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Оплачено</span>';
+            let statusTd = btn.closest('tr').querySelector('td:nth-child(3) .badge');
+            if (statusTd) {
+                statusTd.className = 'badge bg-success';
+                statusTd.textContent = 'Оплачено';
+            }
+            showToast('Платеж успешно отмечен!', 'success');
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = 'Оплатил';
+            showToast('Ошибка при сохранении, но оплата скорее всего прошла. Обновите страницу для проверки.', 'warning');
+        }
+    })
+    .catch(() => {
+        if (btn.parentElement.innerHTML.includes('Оплачено')) {
+            showToast('Платеж успешно отмечен!', 'success');
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = 'Оплатил';
+            showToast('Ошибка при сохранении, но оплата скорее всего прошла. Обновите страницу для проверки.', 'warning');
+        }
+    });
+}
+
+function showToast(message, type) {
+    var toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-bg-' + type + ' border-0 position-fixed bottom-0 end-0 m-3';
+    toast.style.zIndex = 9999;
+    toast.role = 'alert';
+    toast.innerHTML = '<div class="d-flex"><div class="toast-body">' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+    document.body.appendChild(toast);
+    var bsToast = new bootstrap.Toast(toast, { delay: 2500 });
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', function() { toast.remove(); });
+}
+</script>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    border-radius: 15px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.badge {
+    font-size: 0.9em;
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 0 30px rgba(0,0,0,0.2);
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+</style>
+{% endblock %} 

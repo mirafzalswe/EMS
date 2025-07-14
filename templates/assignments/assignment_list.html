@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>{{ group.name }} - Assignments</title>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <!-- Header Section -->
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-tasks me-3 text-primary"></i>
+                        <h1 class="h3 mb-0 text-gray-800">{{ group.name }}</h1>
+                    </div>
+                    {% if is_teacher %}
+                        <a href="{% url 'assigment_create' group_id=group.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Assignment
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Assignments List -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    {% if assignments %}
+                        <div class="assignment-list">
+                            {% for assignment in assignments %}
+                                <a href="{% url 'assignment_detail' assignment_id=assignment.id %}" 
+                                   class="assignment-item">
+                                    <div class="assignment-header">
+                                        <h5 class="assignment-title">{{ assignment.title }}</h5>
+                                        <span class="badge bg-{{ assignment.status|yesno:'success,secondary,danger' }}">
+                                            {{ assignment.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="assignment-description">{{ assignment.description|truncatechars:150 }}</p>
+                                    <div class="assignment-footer">
+                                        <div class="assignment-meta">
+                                            <span class="due-date">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Due: {{ assignment.due_date|date:"d.m.Y H:i" }}
+                                            </span>
+                                            <span class="created-date">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Created: {{ assignment.created_at|date:"d.m.Y H:i" }}
+                                            </span>
+                                        </div>
+                                        <div class="assignment-points">
+                                            <span class="points-badge">
+                                                <i class="fas fa-star me-1"></i>
+                                                {{ assignment.max_points }} points
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3>No Assignments Yet</h3>
+                            <p class="text-muted">There are no assignments for this group at the moment.</p>
+                            {% if is_teacher %}
+                                <a href="{% url 'assigment_create' group_id=group.id %}" class="btn btn-primary mt-3">
+                                    <i class="fas fa-plus me-2"></i>Create First Assignment
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Container Styles */
+.app-container {
+    min-height: calc(100vh - 60px);
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+}
+
+/* Header Styles */
+.page-header {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.page-header h1 {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Assignment List Styles */
+.assignment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.assignment-item {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(78, 115, 223, 0.04);
+}
+
+.assignment-item:hover {
+    transform: translateY(-2px);
+    border-color: #4e73df;
+    box-shadow: 0 4px 16px rgba(78, 115, 223, 0.10);
+    text-decoration: none;
+    color: inherit;
+}
+
+.assignment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.assignment-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+}
+
+.assignment-description {
+    color: #4a5568;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.assignment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.assignment-meta {
+    display: flex;
+    gap: 1.5rem;
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.assignment-meta span {
+    display: flex;
+    align-items: center;
+}
+
+.points-badge {
+    background: #f7fafc;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    color: #4e73df;
+    font-weight: 500;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #38b000 0%, #70e000 100%);
+}
+
+.badge.bg-secondary {
+    background: #adb5bd;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
+}
+
+/* Empty State Styles */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 115, 223, 0.2);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem 0;
+    }
+
+    .page-header {
+        padding: 1rem;
+    }
+
+    .assignment-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .assignment-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .assignment-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

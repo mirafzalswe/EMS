@@ -1,0 +1,757 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    <title>Lidlar</title>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
+
+    
+
+
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <div class="kanban-header mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8 filter_section" >
+                        <h1 class="h3 mb-3">Lidlar</h1>
+                        
+                        <!-- Filter Form -->
+                        <form method="get" class="card card-body mb-3 mt-10 bg-light form_section">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    {{ filter_form.source }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ filter_form.date_from }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ filter_form.date_to }}
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="input-group">
+                                        {{ filter_form.search }}
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                   
+                </div>
+            </div>
+
+            <!-- Временные студенты -->
+            <div class="card temp-leads-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        Vaqtinchalik talabalar
+                        <span class="badge bg-primary">{{ temp_leads_count }}</span>
+                    </h5>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTempLeadModal">
+                        <i class="bi bi-plus-lg"></i> Qo'shish
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if temp_leads %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Ism</th>
+                                        <th>Telefon</th>
+                                        <th>Manba</th>
+                                        <th>Bo'lim</th>
+                                        <th>Data</th>
+                                        <th>Harakat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for temp_lead in temp_leads %}
+                                        <tr>
+                                            <td>{{ temp_lead.get_full_name }}</td>
+                                            <td>{{ temp_lead.phone }}</td>
+                                            <td>{{ temp_lead.source }}</td>
+                                            <td>{{ temp_lead.section }}</td>
+                                            <td>{{ temp_lead.created_at|date:"d.m.Y H:i" }}</td>
+                                            <td>
+                                                <form method="post" action="{% url 'process_temp_lead' temp_lead.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-success btn-sm" title="Добавить в систему">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">Vaqtinchalik talabalar yo'q</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="kanban-container">
+                <div class="row flex-nowrap kanban-board">
+                    <!-- New Students Column -->
+                    <div class="col-lg-3 kanban-column">
+                        <div class="card kanban-card">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-plus me-1"></i> 
+                                    Yangi talabalar
+                                    <span class="badge bg-light text-primary ms-1">{{ new_count }}</span>
+                                </h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addSectionModal" data-column="new">
+                                                <i class="fas fa-folder-plus me-1"></i> Bo'lim qo'shish
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                                                <i class="fas fa-user-plus me-1"></i> Talaba qo'shish
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item delete-section-btn" href="#" data-section-id="{{ section.id }}">
+                                                <i class="fas fa-trash-alt me-1"></i> Bo'lim o'chirish
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="kanban-items" id="new-leads-container">
+                                    {% for section in sections %}
+                                        {% if section.column == 'new' %}
+                                            <div class="section-header mb-3" data-section-id="{{ section.id }}">
+                                                <h6 class="text-muted mb-2">
+                                                    <i class="fas fa-folder me-1"></i> {{ section.name }}
+                                                </h6>
+                                                <div class="section-leads">
+                                                    {% for lead in new_leads %}
+                                                        {% if lead.section_id == section.id %}
+                                                            {% include 'leads/lead_card.html' with lead=lead %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <!-- Leads without section -->
+                                    <div class="section-leads">
+                                        {% for lead in new_leads %}
+                                            {% if not lead.section_id %}
+                                                {% include 'leads/lead_card.html' with lead=lead %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if not new_leads.exists %}
+                                        <div class="empty-message p-3 text-center text-muted">
+                                            <i class="fas fa-info-circle mb-2 d-block" style="font-size: 2rem;"></i>
+                                            Yangi talabalar yo'q
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Waiting Students Column -->
+                    <div class="col-lg-3 kanban-column">
+                        <div class="card kanban-card">
+                            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-clock me-1"></i> 
+                                    Kutish rejimidagilar
+                                    <span class="badge bg-light text-warning ms-1">{{ waiting_count }}</span>
+                                </h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addSectionModal" data-column="waiting">
+                                                <i class="fas fa-folder-plus me-1"></i> Bo'lim qo'shish
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item delete-section-btn" href="#" data-section-id="{{ section.id }}">
+                                                <i class="fas fa-trash-alt me-1"></i> Bo'lim o'chirish
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="kanban-items" id="waiting-leads-container">
+                                    {% for section in sections %}
+                                        {% if section.column == 'waiting' %}
+                                            <div class="section-header mb-3" data-section-id="{{ section.id }}">
+                                                <h6 class="text-muted mb-2">
+                                                    <i class="fas fa-folder me-1"></i> {{ section.name }}
+                                                </h6>
+                                                <div class="section-leads">
+                                                    {% for lead in waiting_leads %}
+                                                        {% if lead.section_id == section.id %}
+                                                            {% include 'leads/lead_card.html' with lead=lead %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <!-- Leads without section -->
+                                    <div class="section-leads">
+                                        {% for lead in waiting_leads %}
+                                            {% if not lead.section_id %}
+                                                {% include 'leads/lead_card.html' with lead=lead %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if not waiting_leads.exists %}
+                                        <div class="empty-message p-3 text-center text-muted">
+                                            <i class="fas fa-info-circle mb-2 d-block" style="font-size: 2rem;"></i>
+                                                Talabalar yo'q
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trial Students Column -->
+                    <div class="col-lg-3 kanban-column">
+                        <div class="card kanban-card">
+                            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chalkboard-teacher me-1"></i> 
+                                    Sinov darsda
+                                    <span class="badge bg-light text-info ms-1">{{ trial_count }}</span>
+                                </h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addSectionModal" data-column="trial">
+                                                <i class="fas fa-folder-plus me-1"></i> Bo'lim qo'shish
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item delete-section-btn" href="#" data-section-id="{{ section.id }}">
+                                                <i class="fas fa-trash-alt me-1"></i> Bo'lim o'chirish
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="kanban-items" id="trial-leads-container">
+                                    {% for section in sections %}
+                                        {% if section.column == 'trial' %}
+                                            <div class="section-header mb-3" data-section-id="{{ section.id }}">
+                                                <h6 class="text-muted mb-2">
+                                                    <i class="fas fa-folder me-1"></i> {{ section.name }}
+                                                </h6>
+                                                <div class="section-leads">
+                                                    {% for lead in trial_leads %}
+                                                        {% if lead.section_id == section.id %}
+                                                            {% include 'leads/lead_card.html' with lead=lead %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <!-- Leads without section -->
+                                    <div class="section-leads">
+                                        {% for lead in trial_leads %}
+                                            {% if not lead.section_id %}
+                                                {% include 'leads/lead_card.html' with lead=lead %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if not trial_leads.exists %}
+                                        <div class="empty-message p-3 text-center text-muted">
+                                            <i class="fas fa-info-circle mb-2 d-block" style="font-size: 2rem;"></i>
+                                            Sinov bo'limida talabalar yo'q
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Attending Students Column -->
+                    <div class="col-lg-3 kanban-column">
+                        <div class="card kanban-card">
+                            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-graduate me-1"></i> 
+                                    Qatnashayapkanlar
+                                    <span class="badge bg-light text-success ms-1">{{ attending_count }}</span>
+                                </h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addGroupModal">
+                                                <i class="fas fa-users me-1"></i> Guruhga qo'shish
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item delete-section-btn" href="#" data-section-id="{{ section.id }}">
+                                                <i class="fas fa-trash-alt me-1"></i> Bo'limni o'chirish
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="kanban-items" id="attending-leads-container">
+                                    {% for section in sections %}
+                                        {% if section.column == 'attending' %}
+                                            <div class="section-header mb-3" data-section-id="{{ section.id }}">
+                                                <h6 class="text-muted mb-2">
+                                                    <i class="fas fa-folder me-1"></i> {{ section.name }}
+                                                </h6>
+                                                <div class="section-leads">
+                                                    {% for lead in attending_leads %}
+                                                        {% if lead.section_id == section.id %}
+                                                            {% include 'leads/lead_card.html' with lead=lead %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <!-- Leads without section -->
+                                    <div class="section-leads">
+                                        {% for lead in attending_leads %}
+                                            {% if not lead.section_id %}
+                                                {% include 'student_tracking/partials/lead_card.html' with lead=lead %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if not attending_leads.exists %}
+                                        <div class="empty-message p-3 text-center text-muted">
+                                            <i class="fas fa-info-circle mb-2 d-block" style="font-size: 2rem;"></i>
+                                            Qatnashayapkanlar talabalar yo'q
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Lead Modal -->
+<div class="modal fade" id="addLeadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-1"></i> Yangi talab qo'shish
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'add_lead' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="form-label">Ism *</label>
+                            <input type="text" name="first_name" id="id_first_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="form-label">Familya *</label>
+                            <input type="text" name="last_name" id="id_last_name" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_phone" class="form-label">Telefon *</label>
+                            <input type="tel" name="phone" id="id_phone" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" name="email" id="id_email" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_gender" class="form-label">Jins</label>
+                            <select name="gender" id="id_gender" class="form-select">
+                                <option value="">Tanlanmagan</option>
+                                <option value="male">Erkak</option>
+                                <option value="female">Ayol</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_source" class="form-label">Manba *</label>
+                            <div class="input-group">
+                                <select name="source" id="id_source" class="form-select" required>
+                                    <option value="">Manba tanlang</option>
+                                    {% for source in lead_sources %}
+                                        <option value="{{ source.id }}">{{ source.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addSourceModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_section" class="form-label">Bo'lim</label>
+                            <select name="section" id="id_section" class="form-select">
+                                <option value="">Bo'lim tanlang</option>
+                                {% for section in sections %}
+                                    {% if section.column == 'new' %}
+                                        <option value="{{ section.id }}">{{ section.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_interested_course" class="form-label">Qiziqgan kurs</label>
+                            <select name="interested_course" id="id_interested_course" class="form-select">
+                                <option value="">Tanlanmagan</option>
+                                {% for course in courses %}
+                                    <option value="{{ course.id }}">{{ course.name }} ({{ course.subject.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_notes" class="form-label">Eslatmalar</label>
+                        <textarea name="notes" id="id_notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ortga</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Section Modal -->
+<div class="modal fade" id="addSectionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-folder-plus me-1"></i> Bo'lim qo'shish
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'add_section' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_section_name" class="form-label">Bo'lim nomi *</label>
+                        <input type="text" name="name" id="id_section_name" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_section_column" class="form-label">Ustun *</label>
+                        <select name="column" id="id_section_column" class="form-select" required>
+                            <option value="new">Yangi talabalar</option>
+                            <option value="waiting">Kutish rejimidagilar</option>
+                            <option value="trial">Sinov darsdgilar</option>
+                            <option value="attending">Qatnashayapkanlar</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ortga</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-save me-1"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Group Modal -->
+<div class="modal fade" id="addGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-users me-1"></i> Yangi guruh qo'shish
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'add_group' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_name" class="form-label">Guruh nomi *</label>
+                            <input type="text" name="name" id="id_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_course" class="form-label">Kurs *</label>
+                            <select name="course" id="id_course" class="form-select" required>
+                                <option value="">Kurs tanlang</option>
+                                {% for course in courses %}
+                                    <option value="{{ course.id }}">{{ course.name }} ({{ course.subject.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_teacher" class="form-label">O'qituvchi *</label>
+                            <select name="teacher" id="id_teacher" class="form-select" required>
+                                <option value="">O'qituvchini tanlang</option>
+                                {% for teacher in teachers %}
+                                    <option value="{{ teacher.id }}">{{ teacher.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_branch" class="form-label">Filial *</label>
+                            <select name="branch" id="id_branch" class="form-select" required>
+                                <option value="">Filialni tanlang</option>
+                                {% for course in courses %}
+                                    {% for branch in course.available_branches.all %}
+                                        <option value="{{ branch.id }}" data-course="{{ course.id }}">
+                                            {{ branch.name }} ({{ branch.address }})
+                                        </option>
+                                    {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_schedule_type" class="form-label">Jadval *</label>
+                            <select name="schedule_type" id="id_schedule_type" class="form-select" required>
+                                <option value="odd">Нечетные дни</option>
+                                <option value="even">Четные дни</option>
+                                <option value="weekend">Выходные дни</option>
+                                <option value="daily">Ежедневно</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_start_date" class="form-label">Дата начала *</label>
+                            <input type="date" name="start_date" id="id_start_date" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="id_start_time" class="form-label">Время начала *</label>
+                            <input type="time" name="start_time" id="id_start_time" class="form-control" 
+                                   min="07:00" max="21:00" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_end_time" class="form-label">Время окончания *</label>
+                            <input type="time" name="end_time" id="id_end_time" class="form-control" 
+                                   min="07:30" max="21:30" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_max_students" class="form-label">Макс. кол-во студентов</label>
+                            <input type="number" name="max_students" id="id_max_students" 
+                                   class="form-control" min="1" max="30" value="15">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Source Modal -->
+<div class="modal fade" id="addSourceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-1"></i> Добавить новый источник
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'add_source' %}" id="addSourceForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_source_name" class="form-label">Название источника *</label>
+                        <input type="text" name="name" id="id_source_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_source_description" class="form-label">Описание</label>
+                        <textarea name="description" id="id_source_description" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления временного студента -->
+<div class="modal fade" id="addTempLeadModal" tabindex="-1" aria-labelledby="addTempLeadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTempLeadModalLabel">Добавить нового студента</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'add_lead' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ temp_lead_form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.last_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.phone|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.email|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.gender|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.source|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.section|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ temp_lead_form.interested_course|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ temp_lead_form.notes|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления раздела -->
+<div class="modal fade" id="deleteSectionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="deleteSectionForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Удалить раздел</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="section_id" id="deleteSectionId">
+          <p>Вы уверены, что хотите удалить этот раздел? Это действие необратимо.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-danger">Удалить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.delete-section-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const sectionId = this.dataset.sectionId;
+        document.getElementById('deleteSectionId').value = sectionId;
+        var modal = new bootstrap.Modal(document.getElementById('deleteSectionModal'));
+        modal.show();
+    });
+});
+
+document.getElementById('deleteSectionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const sectionId = document.getElementById('deleteSectionId').value;
+    fetch('/delete_section/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({section_id: sectionId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || "Ошибка удаления!");
+        }
+    });
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,629 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Discovery LC</title>
+    <link rel="icon" type="image/png" href="{% static 'users/Logo-icon.png' %}">
+    <link rel="shortcut icon" href="{% static 'users/Logo-icon.png' %}">
+    <script src="https://kit.fontawesome.com/6bcd034bb1.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'static_files/schools/home.css' %}">
+</head>
+<body>
+    
+    <!-- Navbar -->
+<nav class="edu-navbar" id="mainNavbar">
+    <div class="edu-navbar__container">
+        <div class="edu-navbar__logo">
+            <div class="edu-navbar__logo-container">
+                <img src="{% static 'users/Logo-icon.png' %}" alt="Discovery LC Logo" class="edu-navbar__logo-img">
+                <div class="edu-navbar__logo-glow"></div>
+            </div>
+            <div class="edu-navbar__logo-text">
+                <h2>Discovery<span>LC</span></h2>
+                <div class="edu-navbar__logo-bar"></div>
+            </div>
+        </div>
+        
+        <div class="edu-navbar__menu">
+            <a href="/" class="edu-navbar__link active">
+                <span class="edu-navbar__link-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="edu-navbar__link-text">Home</span>
+            </a>
+            <a href="#students" class="edu-navbar__link">
+                <span class="edu-navbar__link-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="edu-navbar__link-text">Students</span>
+            </a>
+            <a href="#teachers" class="edu-navbar__link">
+                <span class="edu-navbar__link-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="edu-navbar__link-text">Teachers</span>
+            </a>
+            <a href="#why-choose" class="edu-navbar__link">
+                <span class="edu-navbar__link-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="edu-navbar__link-text">Why Us?</span>
+            </a>
+            <a href="#branch" class="edu-navbar__link">
+                <span class="edu-navbar__link-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="edu-navbar__link-text">Branches</span>
+            </a>
+        </div>
+        
+        <div class="edu-navbar__actions">
+            <a href="{{  'login' }}">
+                <button class="edu-btn edu-btn--outline" aria-label="Login">
+                    <span class="edu-btn__icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 17L15 12L10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span>Login</span>
+                </button>
+            </a>
+            
+            <a href="#register">
+                <button class="edu-btn edu-btn--primary" aria-label="Sign Up">
+                    <span class="edu-btn__icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M20 8V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M23 11H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span>Join Us</span>
+                </button>
+            </a>
+            
+            <div class="edu-navbar__theme-toggle">
+                <input type="checkbox" id="theme-toggle" class="edu-theme-toggle__input">
+                <label for="theme-toggle" class="edu-theme-toggle__label">
+                    <svg class="edu-theme-toggle__sun" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 2V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 20V22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M4 12H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M22 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M19.7782 4.22168L17.5564 6.44348" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M6.44363 17.5563L4.22183 19.7781" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M19.7782 19.7783L17.5564 17.5565" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M6.44363 6.44371L4.22183 4.22192" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="edu-theme-toggle__moon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </label>
+            </div>
+        </div>
+        
+        <button class="edu-navbar__mobile-toggle" aria-label="Toggle menu">
+            <span class="edu-navbar__mobile-line"></span>
+            <span class="edu-navbar__mobile-line"></span>
+            <span class="edu-navbar__mobile-line"></span>
+        </button>
+    </div>
+    
+    <div class="edu-navbar__mobile-menu">
+        <div class="edu-navbar__mobile-header">
+            <div class="edu-navbar__logo">
+                <img src="{% static 'users/Logo-icon.png' %}" alt="Discovery LC Logo" class="edu-navbar__logo-img">
+                <h2>DiscoveryLC</h2>
+            </div>
+            {% comment %} <button class="edu-navbar__mobile-close" aria-label="Close menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button> {% endcomment %}
+        </div>
+        <div class="edu-navbar__mobile-links">
+            <a href="/" class="edu-navbar__mobile-link active">Home</a>
+            <a href="#students" class="edu-navbar__mobile-link">Students</a>
+            <a href="#teachers" class="edu-navbar__mobile-link">Teachers</a>
+            <a href="#why-choose" class="edu-navbar__mobile-link">Why Us?</a>
+            <a href="#branch" class="edu-navbar__mobile-link">Branches</a>
+        </div>
+        <div class="edu-navbar__mobile-buttons">
+            <a href="{{ 'login' }}">
+                <button class="edu-btn edu-btn--outline-mobile">Login</button>
+            </a>
+            <a href="#register">
+                <button class="edu-btn edu-btn--primary-mobile">Join Us</button>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Test Mode Banner -->
+<div class="test-mode-banner">
+    <div class="test-mode-content">
+        <div class="test-mode-icon">⚠️</div>
+        <span class="test-mode-text">Sayt test rejimida ishlayabdi!</span>
+    </div>
+</div>
+
+    <!-- Hero Section -->
+    <section class="edu-hero">
+        <div class="edu-hero__content" data-aos="fade-up">
+            <h1 class="edu-hero__title">Discovery bilan ta'lim oling.</h1>
+            <p class="edu-hero__subtitle">Bizning o'quv kurslarimizga qo'shiling va o'z potentsialingizni oching.</p>
+            <a href="#register"><button class="edu-hero__cta">Hoziroq O'rganishni Boshlash</button></a>
+        </div>
+        <div class="edu-hero__stats" data-aos="fade-left">
+            <div class="edu-stat__card">
+                <span class="edu-stat__number">350+</span>
+                <span class="edu-stat__label">O'quvchilar</span>
+            </div>
+            <div class="edu-stat__card">
+                <span class="edu-stat__number">15+</span>
+                <span class="edu-stat__label">Tajribali O'qituvchilar</span>
+            </div>
+            <div class="edu-stat__card">
+                <span class="edu-stat__number">95%</span>
+                <span class="edu-stat__label">Muvaffaqiyat Darajasi</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- HTML Structure -->
+<section class="edu-teachers" id="teachers">
+    <h2 class="edu-section__title" data-aos="fade-up">Bizning o'qituvchilarimiz</h2>
+    <p class="edu-teachers__subtitle" data-aos="fade-up">Bizning o'qituvchilarimiz 4 yildan ortiq vaqt mobaynida dars o'tib kelmoqda.</p>
+    
+    <div class="edu-teachers__slider">
+        <div class="edu-teachers__track">
+            <!-- Teacher Slide 1 -->
+            <div class="edu-teacher__slide active">
+                <div class="edu-teacher__cards">
+                    <div class="edu-teacher__card edu-teacher__card--back-2">
+                        <img src="{% static 'static_files/schools/teacher1.jpg' %}" alt="Teacher">
+                    </div>
+                    <div class="edu-teacher__card edu-teacher__card--back-1">
+                        <img src="{% static 'static_files/schools/teacher1.jpg' %}" alt="Teacher">
+                    </div>
+                    <div class="edu-teacher__card edu-teacher__card--main">
+                        <img src="{% static 'static_files/schools/teacher1.jpg' %}" alt="Teacher">
+                        <div class="edu-teacher__tags">
+                            <span class="edu-teacher__tag">Ingliz tili o'qituvchisi</span>
+                            <span class="edu-teacher__tag">IELTS 7.0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="edu-teacher__content">
+                    <div class="edu-teacher__quote">"Bir necha darslar bilan siz o'zgarishni ko'rishingiz mumkin."</div>
+                    <div class="edu-teacher__author">Kamronbek</div>
+                    <div class="edu-teacher__info">Discovery LC da ingliz tili o'qituvchisi</div>
+                </div>
+            </div>
+            
+            <!-- Teacher Slide 2 -->
+            <div class="edu-teacher__slide">
+                <div class="edu-teacher__cards">
+                    <div class="edu-teacher__card edu-teacher__card--back-2">
+                        <img src="{% static 'static_files/schools/teacher2.jpeg' %}" alt="Teacher">
+                    </div>
+                    <div class="edu-teacher__card edu-teacher__card--back-1">
+                        <img src="{% static 'static_files/schools/teacher2.jpeg' %}" alt="Teacher">
+                    </div>
+                    <div class="edu-teacher__card edu-teacher__card--main">
+                        <img src="{% static 'static_files/schools/teacher2.jpeg' %}" alt="Teacher">
+                        <div class="edu-teacher__tags">
+                            <span class="edu-teacher__tag">Matematika o'qituvchisi</span>
+                            <span class="edu-teacher__tag">Ekspert</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="edu-teacher__content">
+                    <div class="edu-teacher__quote">"Uning o'qitish usuli matematikani o'rganishni qiziqarli va oson qiladi."</div>
+                    <div class="edu-teacher__author">O'razali</div>
+                    <div class="edu-teacher__info">Discovery LC da matematika o'qituvchisi</div>
+                </div>
+            </div>
+            
+            <!-- Teacher Slide 3 -->
+            <div class="edu-teacher__slide">
+                <div class="edu-teacher__cards">
+                    <div class="edu-teacher__card edu-teacher__card--back-2">
+                        <img src="{% static 'static_files/schools/teach3.png' %}" alt="Teacher">
+                    </div>
+                    <div class="edu-teacher__card edu-teacher__card--back-1">
+                        <img src="{% static 'static_files/schools/teach3.png' %}" alt="Teacher">
+                    </div>
+                    <div class="edu-teacher__card edu-teacher__card--main">
+                        <img src="{% static 'static_files/schools/teach3.png' %}" alt="Teacher">
+                        <div class="edu-teacher__tags">
+                            <span class="edu-teacher__tag">English tutor</span>
+                            <span class="edu-teacher__tag">2+ years exp.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="edu-teacher__content">
+                    <div class="edu-teacher__quote">"6 oyda ingliz tilini o'rganishga yordam beradi."</div>
+                    <div class="edu-teacher__author">Zilola</div>
+                    <div class="edu-teacher__info">Discovery LC da ingliz tili o'qituvchisi</div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="edu-slider__btn edu-slider__btn--prev" aria-label="Previous slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="edu-slider__btn edu-slider__btn--next" aria-label="Next slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        
+        <div class="edu-slider__dots">
+            <button class="edu-slider__dot active" aria-label="Go to slide 1"></button>
+            <button class="edu-slider__dot" aria-label="Go to slide 2"></button>
+            <button class="edu-slider__dot" aria-label="Go to slide 3"></button>
+        </div>
+    </div>
+</section>
+
+    <!-- Interactive Features Section with 3D Cards and Particle Effects -->
+    <canvas class="cosmic-background" id="cosmicBackground"></canvas>
+    
+    <section class="why-choose-section" id="why-choose">
+        <div class="orbit-container">
+            <div class="orbit">
+                <div class="orbit-point" style="top: 0; left: 50%; transform: translate(-50%, -50%);"></div>
+            </div>
+            <div class="orbit">
+                <div class="orbit-point" style="top: 0; left: 50%; transform: translate(-50%, -50%);"></div>
+            </div>
+            <div class="orbit">
+                <div class="orbit-point" style="bottom: 0; right: 50%; transform: translate(50%, 50%);"></div>
+            </div>
+        </div>
+        
+        <div class="particles-container" id="particles"></div>
+        
+        <div class="section-header">
+            <h2 class="section-title">Nima Uchun Bizni Tanlashingiz Kerak?</h2>
+            <p class="section-subtitle">Discovery LC o'quv markazi 2021-yildan buyon ingliz tilini va boshqa fanlarni o'rgatib kelmoqda.</p>
+        </div>
+        
+        <div class="features-container">
+            <div class="feature-card" data-tilt data-tilt-max="10">
+                <div class="feature-icon">✨</div>
+                <h3 class="feature-title">Bepul ikkinchi o'qituvchi</h3>
+                <p class="feature-description">Mavzuni yaxshi o'zlashtirolmagan bo'lsangiz, yordamchi o'qituvchilar har doim yoningizda va istagan mavzuyingizni qayta tushuntirib berishadi.</p>
+                <div class="hologram"></div>
+            </div>
+            
+            <div class="feature-card" data-tilt data-tilt-max="10">
+                <div class="feature-icon">🌌</div>
+                <h3 class="feature-title">Bepul Tadbirlar</h3>
+                <p class="feature-description">Futbol, kino, taniqli va unutilmas sayohatlar, bularning barchasi Discovery LC o'quvchilari uchun mutlaqo bepul.</p>
+                <div class="hologram"></div>
+            </div>
+            
+            <div class="feature-card" data-tilt data-tilt-max="10">
+                <div class="feature-icon">🚀</div>
+                <h3 class="feature-title">Tajribali o'qituvchilar</h3>
+                <p class="feature-description">Har bir o'qituvchi maxsus o'qitish kurslarini tamomlagan bo'lib, ularning IELTS natijalari 8.0 gacha.</p>
+                <div class="hologram"></div>
+            </div>
+        </div>
+        
+        <div class="stats-counter">
+            <div class="stat-item">
+                <div class="stat-value" data-count="95">0</div>
+                <div class="stat-label">Muvaffaqiyat darajasi</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-value" data-count="10">0</div>
+                <div class="stat-label">Ekspert o'qituvchilar</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-value" data-count="350">0</div>
+                <div class="stat-label">Qoniqqan o'quvchilar</div>
+            </div>
+        </div>
+     
+    </section>
+
+    <section class="student-showcase" id="students">
+        <h2 class="showcase-title">Bizning yuqori natijalarni qayd etgan o'quvchilarimiz</h2>
+        
+        <div class="showcase-container" id="showcaseContainer">
+            <!-- Student Card 1 -->
+            <div class="student-card">
+                <div class="decoration-circle circle1"></div>
+                <div class="decoration-circle circle2"></div>
+                
+                <div class="certificate-side">
+                    <img src="{% static 'static_files/schools/certificate-1.png' %}" alt="IELTS Certificate" class="certificate-img">
+                </div>
+                
+                <div class="info-side">
+                    <h3 class="student-name">Go'zal Boltaboyeva</h3>
+                    <p class="student-details">
+                        Go'zal IELTS sertifikatiga tayyorgarlik kursimizni yuqori natijalar bilan yakunladi. Uning rag'bati va izchil harakati unga barcha bo'limlarda ajoyib natijalarga erishishga yordam berdi. 
+                    </p>
+                    
+                    <div class="score-boxes">
+                        <div class="score-box overall-score">
+                            <div class="score-value">7.5</div>
+                            <div class="score-label">Overall IELTS Score</div>
+                        </div>
+                        
+                        <div class="score-box cefr-level">
+                            <div class="score-value">C1</div>
+                            <div class="score-label">CEFR Level</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Student Card 2 -->
+            <div class="student-card">
+                <div class="decoration-circle circle1"></div>
+                <div class="decoration-circle circle2"></div>
+                
+                <div class="certificate-side">
+                    <img src="{% static 'static_files/schools/certificate-2.png' %}" alt="IELTS Certificate" class="certificate-img">
+                </div>
+                
+                <div class="info-side">
+                    <h3 class="student-name">Dinora Ibroximova</h3>
+                    <p class="student-details">
+                        Dinora bizning IELTS tayyorgarlik kursimizga qo'shildi va yuqori natijalarni qo'lga kiritdi. Uning ingliz tilini o'rganishga bo'lgan ishtiyoqi baland ball ni olishga imkon yaratdi.
+                    </p>
+                    
+                    <div class="score-boxes">
+                        <div class="score-box overall-score">
+                            <div class="score-value">7.5</div>
+                            <div class="score-label">Overall IELTS Score</div>
+                        </div>
+                        
+                        <div class="score-box cefr-level">
+                            <div class="score-value">C1</div>
+                            <div class="score-label">CEFR Level</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Student Card 3 -->
+            <div class="student-card">
+                <div class="decoration-circle circle1"></div>
+                <div class="decoration-circle circle2"></div>
+                
+                <div class="certificate-side">
+                    <img src="{% static 'static_files/schools/certificate-3.png' %}" alt="IELTS Certificate" class="certificate-img">
+                </div>
+                
+                <div class="info-side">
+                    <h3 class="student-name">Dilnavo Nematillayeva</h3>
+                    <p class="student-details">
+                        Dilnavoning biz bilan qilgan sayohati uning til o'rganishga bo'lgan qobiliyatini namoyish etadi. Faol darslarga qatnashish va o'z ustida qattiq ishlashi bilan yuqori natijalarni qayd etdi.
+                    </p>
+                    
+                    <div class="score-boxes">
+                        <div class="score-box overall-score">
+                            <div class="score-value">7.5</div>
+                            <div class="score-label">Overall IELTS Score</div>
+                        </div>
+                        
+                        <div class="score-box cefr-level">
+                            <div class="score-value">C1</div>
+                            <div class="score-label">CEFR Level</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+
+    <!-- Registration Form -->
+    <section class="edu-register" id="register">
+        <div class="edu-background">
+            <div class="edu-bubble"></div>
+            <div class="edu-bubble"></div>
+            <div class="edu-bubble"></div>
+            <div class="edu-bubble"></div>
+        </div>
+        
+        <h2 class="edu-section__title animate-fadeIn">Kurslarga yozilish</h2>
+        
+        <form class="edu-register__form animate-slideInUp" id="registrationForm">
+            <div class="edu-form__group">
+                <input type="text" class="edu-form__input" id="fullName" placeholder=" " required>
+                <label for="fullName" class="edu-form__label">To'liq Ism</label>
+            </div>
+            
+            <div class="edu-form__group">
+                <input type="email" class="edu-form__input" id="email" placeholder=" " required>
+                <label for="email" class="edu-form__label">Email Address</label>
+            </div>
+            
+            <div class="edu-form__group">
+                <div class="edu-form__select-container">
+                    <select class="edu-form__input" id="course" required>
+                        <option value="" disabled selected>Select Course</option>
+                        <option value="math">Mathematics</option>
+                        <option value="science">Science</option>
+                        <option value="programming">Programming</option>
+                        <option value="art">Art & Design</option>
+                        <option value="language">Languages</option>
+                    </select>
+                    <label for="course" class="edu-form__label">Kursni tanlang</label>
+                </div>
+            </div>
+            
+            <button type="submit" class="edu-form__submit" id="submitBtn">
+                Hozir ro'yxatdan otish
+            </button>
+        </form>
+        
+        <div class="edu-form__success" id="formSuccess">
+            <div class="edu-form__success-icon">✓</div>
+            <h3>Muvaffaqiyatli ro'yxatdan otildi!</h3>
+            <p>Rahmat, siz bizning o'quv markazimizga qo'shildingiz.</p>
+            <button class="edu-form__submit" onclick="resetForm()">Ro'yxatdan otish</button>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="header_contact" id="branch">
+     
+          
+          <div class="container-branch">
+            <h1 class="section-title mt-5 text-center">Bizning filiallarimiz</h1>
+            
+            <div class="branches-container">
+              <div class="branches-list">
+                <div class="branch-item active-branch" data-coordinates="55.751244, 37.618423">
+                  <h3 class="branch-title">Asosiy ofis</h3>
+                  <p class="branch-address">Olmaliq sh., Tinchlik k., 67-rayon, 9-uy ro'parasi</p>
+                  <p class="branch-phone">+998 (95) 044-59-44</p>
+                  <p class="branch-hours">Du-Sha: 8:00-20:00</p>
+                </div>
+                
+                <div class="branch-item" data-coordinates="55.768416, 37.582275">
+                    <h3 class="branch-title">Tez kunlarda ochiladi...</h3>
+                </div> 
+                
+                <div class="branch-item" data-coordinates="55.753559, 37.649234">
+                    <h3 class="branch-title">Tez kunlarda ochiladi...</h3>
+                </div>
+                
+                <div class="branch-item" data-coordinates="55.781776, 37.632928">
+                  <h3 class="branch-title">Tez kunlarda ochiladi...</h3>
+                </div>
+              </div>
+              
+              
+                <iframe class="map-cent"src="https://yandex.ru/map-widget/v1/?um=constructor%3Aa1b8c396492db8f96810e546f2b3422a32b0757bd860775e3023ebd5c6872069&amp;source=constructor" width="500" height="400" frameborder="0"></iframe>
+              </div>
+            </div>
+          </div>
+
+        
+
+    </section>
+
+    
+
+
+    <!-- Footer -->
+    <footer class="edu-footer">
+        <div class="edu-footer__grid">
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Biz haqimizda</h3>
+                <p class="edu-footer__text">Bizning o'quv markazimiz sizga sifatli ta'lim xizmatlarini taqdim etadi. Asosiy yo'nalishimiz ingliz tili bo'yicha xalqaro sertifikatlarni topshirishga tayyorlash, shuningdek boshqa foydali o'quv kurslari ham mavjud. 
+                    <br> - Turli darajadagi umumiy ingliz tili kurslari.
+                    <br> - Mutaxassislar uchun biznes ingliz tili.
+                    <br> - Til ko'nikmalarini amalda qo'llash uchun suhbat klubi.
+                    <br> - Bolalar va o'smirlar uchun ingliz tili.</p>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Kontakt</h3>
+                <ul class="edu-footer__list">
+                    <li><i class="fas fa-phone"></i> +998 (95) 044-59-44</li>
+                    <li><i class="fas fa-phone"></i> +998 (93) 140-59-44</li>
+                    <li><a href="https://t.me/Discovery_LC_admin"><i class="fa-brands fa-telegram"></i> @Discovery_LC_admin</a></li>
+                </ul>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Manzil</h3>
+                <ul class="edu-footer__list">
+                    <li>Asosiy ofis: Olmaliq, 67-Rayon,Tinchlik ko'chasi, 9-uy ro'parasi</li>
+                    <li>Boshqa ofislar: Tez kunlarda ochiladi...</li>
+                </ul>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Bizni Kuzatib Boring</h3>
+                <div class="edu-footer__social">
+                    <a href="https://t.me/EnglishDiscoveryLearningCenter1" class="edu-social__link"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="https://www.instagram.com/_discovery_learning_center/" class="edu-social__link"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">O'qituvchilarimiz</h3>
+                <ul class="edu-footer__list">
+                    <li><a href="#teachers"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                </ul>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Kurslarga yozilish</h3>
+                <ul class="edu-footer__list">
+                    <li><a href="#register"><i class="fa-sharp-duotone fa-solid fa-door-open"></i> Join Us</a></li>
+                </ul>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Bizning natijalaramiz</h3>
+                <ul class="edu-footer__list">
+                    <li><a href="#students"><i class="fa-solid fa-square-poll-vertical"></i> Students</a></li>
+                </ul>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Nimaga biz ?</h3>
+                <ul class="edu-footer__list">
+                    <li><a href="#why-choose"><i class="fa-sharp-duotone fa-solid fa-circle-question"></i> Why Us ?</a></li>
+                </ul>
+            </div>
+            <div class="edu-footer__column">
+                <h3 class="edu-footer__title">Texnik muammolar bo'yicha</h3>
+                <ul class="edu-footer__list">
+                    <li><i class="fas fa-phone"></i> +998 (94) 218-26-09</li>
+                    <li><i class="fas fa-phone"></i> +998 (94) 215-95-55</li>
+                    <li><a href="https://t.me/khumoyun_04"><i class="fa-brands fa-telegram"></i> @khumoyun_04</a></li>
+                    <li><a href="https://t.me/bakhodirov114"><i class="fa-brands fa-telegram"></i> @bakhodirov114</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="edu-footer__bottom">
+            <p>&copy; 2025 Discovery LC. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'static_files/schools/home.js' %}"></script>

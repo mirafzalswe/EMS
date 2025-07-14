@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Guruhlar</title>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Guruhlar</h1>
+        <button class="btn btn-success">
+            <a href="{% url 'courses:add_group' %}" class="text-light">
+                <i class="fas fa-plus me-2"></i> Yangi Guruh
+            </a>
+        </button>
+    </div>
+
+    <!-- Groups Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Guruh Nomi</th>
+                            <th>Kurs</th>
+                            <th>Studentlar Soni</th>
+                            <th>O'qituvchi</th>
+                            <th>Harakat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                        <tr data-group-id="{{ group.id }}">
+                            <td class="group-name"><a href="{% url 'group_detail' group.id %}">{{ group.name }}</a></td>
+                            <td>{{ group.course.name }}</td>
+                            <td>{{ group.max_students }} / {{ group.students_count }}</td>
+                            <td class="group-teacher">{{ group.teacher.get_full_name }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editGroupModal{{ group.id }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete('{{ group.id }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Group Modal -->
+    <div class="modal fade" id="addGroupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yangi Guruh Qo'shish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'add_group' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">Guruh Nomi</label>
+                            <input type="text" class="form-control" id="groupName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="teacher" class="form-label">O'qituvchi</label>
+                            <select class="form-select" id="teacher" name="teacher" required>
+                                <option value="">Tanlang...</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}">{{ teacher.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal -->
+    {% for group in groups %}
+    <div class="modal fade" id="editGroupModal{{ group.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Guruhni Tahrirlash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="edit-group-form" data-group-id="{{ group.id }}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="groupName{{ group.id }}" class="form-label">Guruh Nomi</label>
+                            <input type="text" class="form-control" id="groupName{{ group.id }}" name="name" value="{{ group.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="teacher{{ group.id }}" class="form-label">O'qituvchi</label>
+                            <select class="form-select" id="teacher{{ group.id }}" name="teacher" required>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}" {% if teacher.id == group.teacher.id %}selected{% endif %}>
+                                    {{ teacher.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Diqqat!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Rostanmi bu guruhni o'chirmoqchimisiz?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yo'q</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Ha, o'chirib tashlash</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Delete Confirmation -->
+    <script>
+        function confirmDelete(groupId) {
+            $('#deleteModal').modal('show');
+            $('#confirmDelete').off('click').on('click', function() {
+                fetch(`/courses/groups/${groupId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Удаляем строку из таблицы без перезагрузки
+                        document.querySelector(`tr[data-group-id='${groupId}']`).remove();
+                        $('#deleteModal').modal('hide');
+                    } else {
+                        alert('Ошибка при удалении!');
+                    }
+                })
+                .catch(() => alert('Ошибка при отправке запроса!'));
+            });
+        }
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.edit-group-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const groupId = form.getAttribute('data-group-id');
+                const url = `/courses/groups/${groupId}/edit/`;
+                const formData = new FormData(form);
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Обновить данные в таблице без перезагрузки
+                        response.json().then(data => {
+                            const row = document.querySelector(`tr[data-group-id='${groupId}']`);
+                            if (row) {
+                                row.querySelector('.group-name').textContent = data.name;
+                                row.querySelector('.group-teacher').textContent = data.teacher_name;
+                            }
+                        });
+                        // Закрыть модалку
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('editGroupModal' + groupId));
+                        if (modal) modal.hide();
+                    } else {
+                        alert('Ошибка при сохранении!');
+                    }
+                })
+                .catch(() => alert('Ошибка при отправке запроса!'));
+            });
+        });
+    });
+    </script>
+{% endblock %}

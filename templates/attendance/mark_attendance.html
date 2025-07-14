@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load attendance_tags %}
+
+{% block title %}{% translate "Отметка посещаемости" %} - {{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <!-- Header Section -->
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-users me-3 text-primary"></i>
+                        <h1 class="h3 mb-0 text-gray-800">{{ group.name }}</h1>
+                    </div>
+                    <div class="header-actions">
+                        <a href="{% url 'attendance:attendance_report' group_id=group.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-bar me-2"></i>{% translate "Отчет" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-filter me-2"></i>{% translate "Фильтры" %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="filter-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="datePicker">
+                                    <i class="fas fa-calendar-alt me-2"></i>{% translate "Дата" %}
+                                </label>
+                                <select id="datePicker" name="date" class="form-select">
+                                    {% for date in available_dates %}
+                                        <option value="{{ date|date:'Y-m-d' }}" 
+                                                {% if date == selected_date %}selected{% endif %}>
+                                            {{ date|date:"d.m.Y" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="scheduleSelect">
+                                    <i class="fas fa-clock me-2"></i>{% translate "Время занятия" %}
+                                </label>
+                                <select id="scheduleSelect" name="schedule" class="form-select"
+                                        {% if not schedules %}disabled{% endif %}>
+                                    {% if not schedules %}
+                                        <option value="">{% translate "Нет доступных занятий" %}</option>
+                                    {% else %}
+                                        {% for schedule in schedules %}
+                                            <option value="{{ schedule.id }}" 
+                                                    {% if schedule == selected_schedule %}selected{% endif %}>
+                                                {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}
+                                            </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>{% translate "Применить" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if not schedules %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% translate "Выберите дату, чтобы увидеть доступные занятия" %}
+                </div>
+            {% endif %}
+
+            {% if selected_schedule %}
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-users me-2"></i>{% translate "Список студентов" %}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="attendanceForm">
+                            {% csrf_token %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="25%">{% translate "Студент" %}</th>
+                                            <th width="50%">{% translate "Статус" %}</th>
+                                            <th width="25%">{% translate "Комментарий" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for student in students %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="student-avatar me-3">
+                                                            {{ student.get_full_name|make_list|first }}
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="mb-0">{{ student.get_full_name }}</h6>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="status-buttons">
+                                                        {% for status_code, status_label in attendance_statuses %}
+                                                            {% with student_attendance=attendance_dict|get_item:student.id %}
+                                                            <button type="button"
+                                                                    class="btn btn-sm status-btn status-{{ status_code }} {% if student_attendance.status == status_code %}active{% endif %}"
+                                                                    data-student-id="{{ student.id }}"
+                                                                    data-status="{{ status_code }}">
+                                                                {% if status_code == 'present' %}
+                                                                    <i class="fas fa-check"></i>
+                                                                {% elif status_code == 'absent' %}
+                                                                    <i class="fas fa-times"></i>
+                                                                {% elif status_code == 'late' %}
+                                                                    <i class="fas fa-clock"></i>
+                                                                {% elif status_code == 'excused' %}
+                                                                    <i class="fas fa-user-clock"></i>
+                                                                {% elif status_code == 'online' %}
+                                                                    <i class="fas fa-video"></i>
+                                                                {% endif %}
+                                                                {{ status_label }}
+                                                            </button>
+                                                            {% endwith %}
+                                                        {% endfor %}
+                                                        {% with student_attendance=attendance_dict|get_item:student.id %}
+                                                        <input type="hidden" 
+                                                               name="status_{{ student.id }}" 
+                                                               value="{{ student_attendance.status|default:'absent' }}">
+                                                        {% endwith %}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% with student_attendance=attendance_dict|get_item:student.id %}
+                                                    <input type="text" 
+                                                           name="comment_{{ student.id }}"
+                                                           class="form-control"
+                                                           value="{{ student_attendance.comment|default:'' }}"
+                                                           placeholder="{% translate 'Комментарий...' %}">
+                                                    {% endwith %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>{% translate "Сохранить" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Container Styles */
+.app-container {
+    min-height: calc(100vh - 60px);
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+}
+
+/* Header Styles */
+.page-header {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Student Avatar */
+.student-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Status Buttons */
+.status-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.status-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.status-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Status Colors */
+.status-present {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-color: #c8e6c9;
+}
+
+.status-present.active {
+    background-color: #2e7d32;
+    color: white;
+}
+
+.status-absent {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ffcdd2;
+}
+
+.status-absent.active {
+    background-color: #c62828;
+    color: white;
+}
+
+.status-late {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border-color: #ffe0b2;
+}
+
+.status-late.active {
+    background-color: #ef6c00;
+    color: white;
+}
+
+.status-excused {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border-color: #bbdefb;
+}
+
+.status-excused.active {
+    background-color: #1565c0;
+    color: white;
+}
+
+.status-online {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+    border-color: #e1bee7;
+}
+
+.status-online.active {
+    background-color: #6a1b9a;
+    color: white;
+}
+
+/* Hover Effects */
+.status-btn:hover:not(.active) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Styles */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    color: #4a5568;
+    border-top: none;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Form Controls */
+.form-select,
+.form-control {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem 0;
+    }
+
+    .page-header {
+        padding: 1rem;
+    }
+
+    .status-buttons {
+        flex-direction: column;
+    }
+
+    .status-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .table td {
+        padding: 1rem 0.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status button handling
+    const statusButtons = document.querySelectorAll('.status-btn');
+    statusButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const buttonGroup = this.closest('.status-buttons');
+            buttonGroup.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            const studentId = this.getAttribute('data-student-id');
+            const status = this.getAttribute('data-status');
+            const hiddenInput = buttonGroup.querySelector(`input[name="status_${studentId}"]`);
+            if (hiddenInput) {
+                hiddenInput.value = status;
+            }
+        });
+    });
+
+    // Form submission handling
+    const form = document.getElementById('attendanceForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{% translate "Сохранение..." %}';
+        });
+    }
+});
+</script>
+{% endblock %}
+

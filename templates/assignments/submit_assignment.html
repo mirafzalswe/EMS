@@ -1,0 +1,594 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}
+    <title>Submit Assignment - {{ assignment.title }}</title>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <!-- Header Section -->
+            <div class="page-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-upload me-3 text-primary"></i>
+                        <h1 class="h3 mb-0 text-gray-800">Submit Assignment</h1>
+                    </div>
+                    <div class="assignment-status">
+                        <span class="badge bg-{{ assignment.status|yesno:'success,secondary,danger' }}">
+                            {{ assignment.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="submit-assignment-card">
+                        <!-- Assignment Info Section -->
+                        <div class="detail-section">
+                            <div class="section-header">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <h4>Assignment Information</h4>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Title:</span>
+                                    <span class="info-value">
+                                        <i class="fas fa-tasks me-1"></i>
+                                        {{ assignment.title }}
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Due Date:</span>
+                                    <span class="info-value">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ assignment.due_date|date:"d.m.Y H:i" }}
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Max Points:</span>
+                                    <span class="info-value">
+                                        <i class="fas fa-star me-1"></i>
+                                        {{ assignment.max_points }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if submission %}
+                            <!-- Existing Submission Section -->
+                            <div class="detail-section">
+                                <div class="section-header">
+                                    <i class="fas fa-check-circle me-2 text-success"></i>
+                                    <h4>Assignment Already Submitted</h4>
+                                </div>
+                                
+                                <div class="submission-status-info">
+                                    <div class="status-badge-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span class="fw-bold">Submitted on {{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+                                    </div>
+                                    
+                                    {% if submission.points is not None %}
+                                        <!-- Graded submission -->
+                                        <div class="grade-info mt-4">
+                                            <div class="section-header">
+                                                <i class="fas fa-star me-2"></i>
+                                                <h5>Your Grade</h5>
+                                            </div>
+                                            <div class="grade-display-large">
+                                                <div class="grade-badge-large bg-{{ submission.grade_status }}">
+                                                    <span class="grade-score">{{ submission.points }}/{{ assignment.max_points }}</span>
+                                                    <span class="grade-percentage">({{ submission.points|percentage:assignment.max_points }}%)</span>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if submission.feedback %}
+                                                <div class="feedback-section mt-3">
+                                                    <div class="section-header">
+                                                        <i class="fas fa-comment-dots me-2"></i>
+                                                        <h6>Teacher's Feedback</h6>
+                                                    </div>
+                                                    <div class="feedback-content">
+                                                        {{ submission.feedback|linebreaks }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+
+                                            {% if submission.graded_by %}
+                                                <div class="graded-by-info mt-3">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user-check me-1"></i>
+                                                        Graded by: {{ submission.graded_by.get_full_name }}
+                                                        {% if submission.graded_at %}
+                                                            <i class="fas fa-clock ms-2 me-1"></i>
+                                                            {{ submission.graded_at|date:"d.m.Y H:i" }}
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <!-- Submitted but not graded -->
+                                        <div class="not-graded-info mt-4">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Your submission has been received and is waiting for grading.
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- Show submission content -->
+                                    <div class="submission-content-section mt-4">
+                                        <div class="section-header">
+                                            <i class="fas fa-file-alt me-2"></i>
+                                            <h6>Your Submission</h6>
+                                        </div>
+                                        
+                                        {% if submission.content %}
+                                            <div class="content-box mb-3">
+                                                <strong>Comments:</strong>
+                                                <div class="mt-2">{{ submission.content|linebreaks }}</div>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if submission.attachment %}
+                                            <div class="attachment-box">
+                                                <strong>Attached File:</strong>
+                                                <div class="mt-2">
+                                                    <a href="{{ submission.attachment.url }}" class="attachment-link" target="_blank">
+                                                        <i class="fas fa-file me-2"></i>
+                                                        {{ submission.attachment.name|slice:"14:" }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Action buttons -->
+                                    <div class="form-actions mt-4">
+                                        <a href="{% url 'assignment_detail' assignment_id=assignment.id %}" class="btn btn-primary">
+                                            <i class="fas fa-eye me-2"></i>View Assignment Details
+                                        </a>
+                                        <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Submission Form Section -->
+                            <div class="detail-section">
+                                <div class="section-header">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    <h4>Submit Your Work</h4>
+                                </div>
+                                <form method="post" enctype="multipart/form-data" class="submission-form">
+                                    {% csrf_token %}
+                                    
+                                    <!-- File Upload -->
+                                    <div class="form-group mb-4">
+                                        <label for="{{ form.attachment.id_for_label }}" class="form-label">
+                                            <i class="fas fa-file me-2"></i>Upload File
+                                        </label>
+                                        <div class="file-upload-wrapper">
+                                            {{ form.attachment }}
+                                            <div class="file-upload-info">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Allowed formats: PDF, DOC, DOCX, TXT, ZIP, RAR (max 10MB)
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if form.attachment.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.attachment.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Comments -->
+                                    <div class="form-group mb-4">
+                                        <label for="{{ form.content.id_for_label }}" class="form-label">
+                                            <i class="fas fa-comment me-2"></i>Comments (Optional)
+                                        </label>
+                                        {{ form.content }}
+                                        {% if form.content.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.content.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane me-2"></i>Submit Assignment
+                                        </button>
+                                        <a href="{% url 'assignment_detail' assignment_id=assignment.id %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times me-2"></i>Cancel
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+
+/* Header Styles */
+.page-header {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.page-header h1 {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Card Styles */
+.submit-assignment-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+}
+
+/* Section Styles */
+.detail-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.section-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.section-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.section-header i {
+    color: #4e73df;
+    font-size: 1.25rem;
+}
+
+.section-header i.text-success {
+    color: #38b000;
+}
+
+/* Info Grid Styles */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-label {
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.info-value {
+    font-weight: 500;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+}
+
+.info-value i {
+    color: #4e73df;
+    margin-right: 0.5rem;
+}
+
+/* Form Styles */
+.form-label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* File Upload Styles */
+.file-upload-wrapper {
+    position: relative;
+}
+
+.file-upload-info {
+    margin-top: 0.5rem;
+}
+
+/* Button Styles */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 115, 223, 0.2);
+}
+
+.btn-outline-secondary {
+    border: 2px solid #e2e8f0;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #cbd5e0;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #38b000 0%, #70e000 100%);
+}
+
+.badge.bg-secondary {
+    background: #adb5bd;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background-color: #f0fff4;
+    color: #2f855a;
+}
+
+.alert-danger {
+    background-color: #fff5f5;
+    color: #e53e3e;
+}
+
+.alert-info {
+    background-color: #ebf8ff;
+    color: #2b6cb0;
+}
+
+.alert i {
+    font-size: 1.1rem;
+}
+
+/* Submission Status Styles */
+.submission-status-info {
+    padding: 1rem 0;
+}
+
+.status-badge-success {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f0fff4;
+    border-radius: 8px;
+    border-left: 4px solid #38b000;
+    color: #2f855a;
+    font-size: 1.1rem;
+}
+
+/* Grade Display Styles */
+.grade-display-large {
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.grade-badge-large {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.grade-score {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.grade-percentage {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.grade-badge-large.bg-success {
+    background: linear-gradient(135deg, #38b000 0%, #70e000 100%);
+    color: white;
+}
+
+.grade-badge-large.bg-warning {
+    background: linear-gradient(135deg, #ffd60a 0%, #ffc300 100%);
+    color: #2d3748;
+}
+
+.grade-badge-large.bg-danger {
+    background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
+    color: white;
+}
+
+/* Feedback Section Styles */
+.feedback-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.feedback-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+}
+
+/* Content Box Styles */
+.content-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.attachment-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.attachment-link {
+    color: #4e73df;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.attachment-link:hover {
+    background: #4e73df;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(78, 115, 223, 0.2);
+}
+
+/* Graded By Info Styles */
+.graded-by-info {
+    text-align: center;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem 0;
+    }
+
+    .submit-assignment-card {
+        padding: 1.5rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .grade-badge-large {
+        padding: 1rem 1.5rem;
+    }
+    
+    .grade-score {
+        font-size: 1.5rem;
+    }
+    
+    .grade-percentage {
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %} 

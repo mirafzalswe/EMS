@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Расписание занятий</title>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+<style>
+    .schedule-container {
+        background: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+
+    .schedule-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .schedule-title {
+        font-size: 1.8rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .week-navigation {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .week-range {
+        font-size: 1.1rem;
+        color: #666;
+    }
+
+    .nav-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .nav-btn:hover {
+        background: #2980b9;
+    }
+
+    .schedule-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .schedule-table th {
+        background: #f8f9fa;
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .schedule-table td {
+        padding: 1rem;
+        text-align: center;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: top;
+    }
+
+    .lesson-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-left: 4px solid #3498db;
+    }
+
+    .lesson-time {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .lesson-subject {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .lesson-room {
+        color: #888;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .today {
+        background: #e8f4f8;
+    }
+
+    .today .lesson-card {
+        border-left-color: #2ecc71;
+    }
+
+    .no-lessons {
+        color: #888;
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        .schedule-container {
+            padding: 1rem;
+        }
+
+        .schedule-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .schedule-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+</style>
+
+<div class="schedule-container mx-3">
+    <div class="schedule-header">
+        <h1 class="schedule-title">Расписание занятий</h1>
+        <div class="week-navigation">
+            <button class="nav-btn" onclick="previousWeek()">← Предыдущая неделя</button>
+            <span class="week-range">
+                {{ week_start|date:"d.m.Y" }} - {{ week_end|date:"d.m.Y" }}
+            </span>
+            <button class="nav-btn" onclick="nextWeek()">Следующая неделя →</button>
+        </div>
+    </div>
+
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th>Время</th>
+                {% for weekday in weekdays %}
+                <th>{{ weekday }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in weekly_schedules %}
+                {% for lesson in schedule.lessons %}
+                <tr {% if lesson.date == today %}class="today"{% endif %}>
+                
+                    <td>{{ lesson.start_time|time:"H:i" }} - {{ lesson.end_time|time:"H:i" }}</td>
+                    {% for weekday in weekdays %}
+                    <td>
+                        {% if lesson.date|date:"l" == weekday %}
+                        {{ yeah }}
+                        <div class="lesson-card">
+                            <!-- <div class="lesson-time">{{ lesson.topic|default:"Занятие" }}</div> -->
+                            <div class="lesson-subject">{{ schedule.group.course.name }}</div>
+                            <div class="lesson-room">
+                                {% if lesson.schedule.classroom %}
+                                Аудитория: {{ lesson.schedule.classroom.name }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            {% empty %}
+            <tr>
+                <td colspan="8" class="no-lessons">
+                    На этой неделе занятий нет
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    function previousWeek() {
+        const currentUrl = new URL(window.location.href);
+        const currentDate = new Date(currentUrl.searchParams.get('date') || new Date());
+        currentDate.setDate(currentDate.getDate() - 7);
+        currentUrl.searchParams.set('date', currentDate.toISOString().split('T')[0]);
+        window.location.href = currentUrl.toString();
+    }
+
+    function nextWeek() {
+        const currentUrl = new URL(window.location.href);
+        const currentDate = new Date(currentUrl.searchParams.get('date') || new Date());
+        currentDate.setDate(currentDate.getDate() + 7);
+        currentUrl.searchParams.set('date', currentDate.toISOString().split('T')[0]);
+        window.location.href = currentUrl.toString();
+    }
+</script>
+{% endblock %}
+

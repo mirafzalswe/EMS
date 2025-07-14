@@ -1,0 +1,185 @@
+<div class="kanban-item card mb-2" data-lead-id="{{ lead.id }}" data-order="{{ lead.order_in_column }}">
+    <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0 drag-handle" style="cursor: move;">
+                {{ lead.first_name }} {{ lead.last_name }}
+            </h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'edit_lead' lead.id %}">
+                            <i class="fas fa-edit me-1"></i> Редактировать
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#quickViewModal{{ lead.id }}">
+                            <i class="fas fa-eye me-1"></i> Быстрый просмотр
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#moveLeadModal{{ lead.id }}">
+                            <i class="fas fa-random me-1"></i> Перенести в раздел
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card-text small">
+            <div class="d-flex align-items-center mb-1">
+                <i class="fas fa-phone-alt text-muted me-2"></i>
+                <span>{{ lead.phone }}</span>
+            </div>
+            
+            {% if lead.source %}
+            <div class="d-flex align-items-center mb-1">
+                <i class="fas fa-tag text-muted me-2"></i>
+                <span class="badge bg-secondary">{{ lead.source.name }}</span>
+            </div>
+            {% endif %}
+            
+            {% if lead.interested_course %}
+            <div class="d-flex align-items-center">
+                <i class="fas fa-book text-muted me-2"></i>
+                <span class="text-truncate">{{ lead.interested_course.name }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-2 small text-muted d-flex justify-content-between">
+            <span>
+                <i class="far fa-clock"></i> 
+                {{ lead.created_at|date:"d.m.Y" }}
+            </span>
+            
+            {% if lead.converted_to_student %}
+            <span class="badge bg-success">
+                <i class="fas fa-check me-1"></i> Студент
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal{{ lead.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-1"></i> {{ lead.first_name }} {{ lead.last_name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Телефон:</p>
+                        <p class="fs-6">{{ lead.phone }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Email:</p>
+                        <p class="fs-6">{{ lead.email|default:"-" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Источник:</p>
+                        <p class="fs-6">{{ lead.source.name|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Дата создания:</p>
+                        <p class="fs-6">{{ lead.created_at|date:"d.m.Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if lead.interested_course %}
+                <div class="mb-3">
+                    <p class="mb-1 text-muted">Интересующий курс:</p>
+                    <p class="fs-6">{{ lead.interested_course.name }} ({{ lead.interested_course.subject.name }})</p>
+                </div>
+                {% endif %}
+                
+                {% if lead.notes %}
+                <div class="mb-3">
+                    <p class="mb-1 text-muted">Примечания:</p>
+                    <p class="fs-6">{{ lead.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <a href="{% url 'edit_lead' lead.id %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i> Редактировать
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="moveLeadModal{{ lead.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form class="move-lead-form" data-lead-id="{{ lead.id }}">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-random me-1"></i>
+            {{ lead.first_name }} {{ lead.last_name }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Имя лида крупно -->
+          <div class="mb-3 text-center">
+            <span class="fw-bold fs-5">{{ lead.first_name }} {{ lead.last_name }}</span>
+          </div>
+          <!-- Список разделов -->
+          <div class="mb-3">
+            <label for="moveSectionSelect{{ lead.id }}" class="form-label">Выберите раздел</label>
+            <select name="section" class="form-select">
+                {% for section in sections %}
+                    <option value="{{ section.id }}" {% if lead.section_id == section.id %}selected{% endif %}>
+                        {{ section.name }} ({{ section.get_column_display }})
+                    </option>
+                {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Перенести</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.move-lead-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const leadId = this.dataset.leadId;
+        const sectionId = this.querySelector('select[name="section"]').value;
+        fetch("/move_lead/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({lead_id: leadId, section_id: sectionId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert("Ошибка переноса!\n" + (data.error || ""));
+            }
+        });
+    });
+});
+</script>

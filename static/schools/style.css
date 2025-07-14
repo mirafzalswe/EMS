@@ -1,0 +1,557 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #183883;
+    --secondary-color: #f5f5f5;
+    --text-color: #333;
+    --hover-color: #122a63;
+    --border-color: #e0e0e0;
+    --active-bg: #e8eaf6;
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: var(--text-color);
+    overflow-x: hidden;
+}
+
+/* ===== HORIZONTAL NAVBAR ===== */
+.horizontal-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 60px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo img {
+    width: 30px;
+    height: 30px;
+}
+
+.search-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    margin: 0 20px;
+}
+
+.search-box {
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    padding: 0 40px 0 15px;
+    font-size: 14px;
+    background-color: var(--secondary-color);
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+}
+
+.action-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.action-icon:hover {
+    background-color: #e0e0e0;
+}
+
+.action-icon i {
+    color: #555;
+    font-size: 16px;
+}
+
+.language-selector {
+    background-color: var(--secondary-color);
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.user-name {
+    margin-right: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 30px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+/* ===== VERTICAL NAVBAR ===== */
+.app-container {
+    /* display: flex;
+    margin-top: 20px;
+    min-height: calc(100vh - 60px); */
+}
+
+.vertical-navbar {
+    width: 240px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    height: calc(100vh - 60px);
+    position: fixed;
+    top: 60px;
+    overflow-y: auto;
+    transition: var(--transition);
+    z-index: 100;
+}
+
+.content {
+    margin-left: 240px;
+    flex-grow: 1;
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.nav-item {
+    position: relative;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.nav-link:hover {
+    background-color: var(--active-bg);
+}
+
+.nav-link.active {
+    background-color: var(--active-bg);
+    border-left: 3px solid var(--primary-color);
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-text {
+    flex-grow: 1;
+    font-size: 14px;
+}
+
+.nav-arrow {
+    font-size: 12px;
+    transition: var(--transition);
+}
+
+.subnav {
+    background-color: #f9f9f9;
+    max-height: 0;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.subnav-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px 10px 60px;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.subnav-link:hover {
+    background-color: #e6e6e6;
+}
+
+.nested-subnav {
+    background-color: #f1f1f1;
+    max-height: 0;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.nested-subnav-link {
+    padding-left: 80px;
+}
+
+/* Expanded states */
+.nav-item.expanded .nav-arrow {
+    transform: rotate(90deg);
+}
+
+.nav-item.expanded > .subnav {
+    max-height: 1000px;
+}
+
+.subnav-item.expanded .nav-arrow {
+    transform: rotate(90deg);
+}
+
+.subnav-item.expanded > .nested-subnav {
+    max-height: 1000px;
+}
+
+/* Theme toggle */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 1001;
+    transition: var(--transition);
+}
+
+.theme-toggle:hover {
+    background-color: var(--hover-color);
+}
+
+/* Dark theme */
+body.dark-theme {
+    background-color: #121212;
+    color: #f1f1f1;
+}
+
+body.dark-theme .horizontal-navbar {
+    background-color: #1e1e1e;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.dark-theme .vertical-navbar {
+    background-color: #1e1e1e;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+}
+
+body.dark-theme .action-icon {
+    background-color: #333;
+}
+
+body.dark-theme .action-icon i {
+    color: #ddd;
+}
+
+body.dark-theme .search-input {
+    background-color: #333;
+    border-color: #444;
+    color: #ddd;
+}
+
+body.dark-theme .subnav {
+    background-color: #252525;
+}
+
+body.dark-theme .nested-subnav {
+    background-color: #2a2a2a;
+}
+
+body.dark-theme .nav-link:hover,
+body.dark-theme .subnav-link:hover {
+    background-color: #333;
+}
+
+body.dark-theme .nav-link.active {
+    background-color: #333;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .vertical-navbar {
+        width: 60px;
+    }
+
+    .content {
+        margin-left: 60px;
+    }
+
+    .nav-text, .nav-arrow {
+        display: none;
+    }
+
+    .subnav-link, .nested-subnav-link {
+        padding-left: 20px;
+    }
+
+    .horizontal-navbar {
+        padding: 10px;
+    }
+
+    .user-name {
+        display: none;
+    }
+
+    .search-container {
+        margin: 0 10px;
+    }
+
+    .vertical-navbar.expanded {
+        width: 240px;
+        z-index: 1010;
+    }
+
+    .vertical-navbar.expanded .nav-text,
+    .vertical-navbar.expanded .nav-arrow {
+        display: block;
+    }
+
+    .vertical-navbar.expanded .subnav-link {
+        padding-left: 60px;
+    }
+
+    .vertical-navbar.expanded .nested-subnav-link {
+        padding-left: 80px;
+    }
+    
+    /* Add hover functionality to show expanded menu */
+    .vertical-navbar:hover {
+        width: 240px;
+    }
+
+    .vertical-navbar:hover .nav-text,
+    .vertical-navbar:hover .nav-arrow {
+        display: block;
+    }
+
+    .vertical-navbar:hover .subnav-link {
+        padding-left: 60px;
+    }
+
+    .vertical-navbar:hover .nested-subnav-link {
+        padding-left: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .vertical-navbar {
+        position: fixed;
+        left: -240px;
+        top: 60px;
+        bottom: 0;
+        width: 240px;
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+
+    .vertical-navbar.mobile-visible {
+        transform: translateX(240px);
+    }
+
+    .content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+        cursor: pointer;
+        padding: 8px;
+        margin-right: 15px;
+        color: var(--primary-color);
+    }
+
+    .mobile-menu-toggle i {
+        font-size: 24px;
+    }
+
+    /* .search-container {
+        display: none;
+    } */
+
+   
+}
+
+@media (max-width: 480px) {
+    .horizontal-navbar {
+        padding: 10px 5px;
+    }
+    
+    .action-icon {
+        width: 28px;
+        height: 28px;
+        margin-left: 3px;
+    }
+    
+    .language-selector {
+        margin-left: 3px;
+        padding: 3px 6px;
+        font-size: 12px;
+    }
+    
+    /* Compact version for very small screens */
+    .vertical-navbar {
+        width: 200px;
+    }
+    
+    .nav-link {
+        padding: 10px 15px;
+    }
+    
+    .nav-icon {
+        margin-right: 10px;
+    }
+    
+    .subnav-link {
+        padding: 8px 15px 8px 45px;
+        font-size: 12px;
+    }
+    
+    .nested-subnav-link {
+        padding-left: 60px;
+    }
+}
+
+/* Mobile menu button */
+.mobile-menu-toggle {
+    display: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 15px;
+    color: var(--primary-color);
+}
+
+.mobile-menu-toggle i {
+    font-size: 24px;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .horizontal-navbar {
+        padding: 10px 15px;
+    }
+    
+    .logo-container {
+        display: flex;
+        align-items: center;
+    }
+    
+    
+}
+
+/* Nav hover effect for compact view */
+@media (max-width: 992px) and (min-width: 769px) {
+    .vertical-navbar:hover {
+        overflow-y: auto;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+    }
+    
+    /* Add backdrop when sidebar is expanded on hover */
+    .vertical-navbar:hover::after {
+        content: '';
+        position: fixed;
+        top: 60px;
+        left: 240px;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+        z-index: -1;
+        pointer-events: none;
+    }
+}
+
+/* Fix for nested menu on small screens */
+@media (max-width: 480px) {
+    .vertical-navbar .subnav-item .subnav-link {
+        font-size: 11px;
+    }
+    
+    .vertical-navbar .nested-subnav-link {
+        font-size: 11px;
+    }
+}
+
+/* Improved scrollbar for the vertical navbar */
+.vertical-navbar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.vertical-navbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+
+.vertical-navbar::-webkit-scrollbar-track {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Login Page */

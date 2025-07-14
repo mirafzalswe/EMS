@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Talabani guruhga qo'shish</title>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="content">
+        <div class="container-fluid">
+            <!-- Page Header -->
+            <div class="page-header mb-4">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h1 class="mb-0">
+                            <i class="fas fa-user-plus me-2"></i>Talabani guruhga qo'shish
+                        </h1>
+                        <p class="text-muted mb-0">Talabani va qo'shish uchun guruhni tanlang</p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'students_management' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Ro'yxatga qaytish
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+                <div class="messages mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-edit me-2"></i>Qo'shish formasi
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <!-- Student Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-user me-2"></i>Talabani tanlang
+                                    </label>
+                                    <select name="student_id" class="form-select" required>
+                                        <option value="">-- Talabani tanlang --</option>
+                                        {% for student in students %}
+                                            <option value="{{ student.id }}" 
+                                                    {% if request.GET.student_id == student.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ student.get_full_name }} ({{ student.email }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        Ro'yxatdan qo'shish uchun talabani tanlang
+                                    </div>
+                                </div>
+
+                                <!-- Group Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-users me-2"></i>Guruhni tanlang
+                                    </label>
+                                    <select name="group_id" class="form-select" required>
+                                        <option value="">-- Guruhni tanlang --</option>
+                                        {% for group in groups %}
+                                            <option value="{{ group.id }}">
+                                                {{ group.name }} - {{ group.course.name }} 
+                                                ({{ group.available_spots }} joy bo'sh)
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        Qo'shish uchun guruhni tanlang
+                                    </div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Talabalarni qo'shish
+                                    </button>
+                                    <a href="{% url 'students_management' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Ortga
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Available Groups Info -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Guruhlar haqida ma'lumot
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for group in groups %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="group-info-card p-3 border rounded">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0">{{ group.name }}</h6>
+                                            <span class="badge {% if group.available_spots > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ group.available_spots }} joy
+                                            </span>
+                                        </div>
+                                        <div class="group-details">
+                                            <div class="mb-1">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-book me-1"></i>{{ group.course.name }}
+                                                </small>
+                                            </div>
+                                            <div class="mb-1">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user-tie me-1"></i>{{ group.teacher.get_full_name }}
+                                                </small>
+                                            </div>
+                                            <div class="mb-1">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>{{ group.branch.name }}
+                                                </small>
+                                            </div>
+                                            <div class="mb-1">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>{{ group.start_date|date:"d.m.Y" }}
+                                                </small>
+                                            </div>
+                                            {% if group.lesson_time %}
+                                            <div class="mb-1">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>{{ group.lesson_time }}
+                                                </small>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                                        <h5>Mavjud guruhlar</h5>
+                                        <p class="text-muted">Barcha guruhlar to'la yoki no-aktiv</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+.page-header {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.page-header h1 {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.card-header h5 {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.group-info-card {
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+.group-info-card:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.group-details {
+    font-size: 0.9rem;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.form-label {
+    color: #495057;
+}
+
+.form-select {
+    border-radius: 8px;
+    border-color: #ced4da;
+}
+
+.form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1rem;
+    }
+    
+    .group-info-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %} 
