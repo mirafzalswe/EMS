@@ -9,7 +9,8 @@ from .views import (
     TeacherProfileView, GroupDetailView, student_lesson_schedule, TeacherListView, 
     TeacherDetailView, assignment_list_teachers, student_courses_view,
     students_management_view, add_student_to_group, remove_student_from_group, delete_student,
-    bulk_delete_students, students_assignments, groups_management
+    bulk_delete_students, students_assignments, groups_management, student_change_password,
+    student_profile_edit
 )
 from django.contrib.auth import views as auth_views
 
@@ -47,6 +48,8 @@ urlpatterns = [
     path('student/schedule/', student_lesson_schedule, name='schedule'),
     path('student/courses/', student_courses_view, name='student_courses'),
     path('student/assignments/', students_assignments, name='students_assignments'),
+    path('student/change-password/', student_change_password, name='student_change_password'),
+    path('student/edit-profile/', student_profile_edit, name='student_profile_edit'),
 
     # Новые URL для управления студентами
     path('students/', students_management_view, name='students_management'),

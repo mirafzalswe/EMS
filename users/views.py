@@ -735,6 +735,49 @@ def add_student(request):
             return redirect('add_student')
 
     return render(request, 'users/add_student.html')
+from .forms import StudentChangePasswordForm, StudentProfileForm
+from django.contrib import messages
+@login_required
+@user_passes_test(lambda u: u.is_student)
+def student_change_password(request):
+    if request.method == 'POST':
+        form = StudentChangePasswordForm(request.user, request.POST)
+        if form.is_valid():
+            old_password = form.cleaned_data.get('old_password')
+            new_password = form.cleaned_data.get('new_password1')
+            new_password2 = form.cleaned_data.get('new_password2')
+
+        if not all([old_password, new_password, new_password2]):
+            messages.error(request, 'All fields are required')
+            return redirect('student_change_password')
+
+        if new_password != new_password2:
+            messages.error(request, 'Passwords do not match')
+            return redirect('student_change_password')
+
+        if not request.user.check_password(old_password):
+            messages.error(request, 'Old password is incorrect')
+            return redirect('student_change_password')
+
+        request.user.set_password(new_password)
+        request.user.save()
+        messages.success(request, 'Password changed successfully')
+        return redirect('student_dashboard')
+
+    return render(request, 'users/student/student_change_password.html', {'form': StudentChangePasswordForm(request.user)})
+@login_required
+@user_passes_test(lambda u: u.is_student)
+def student_profile_edit(request):
+    if request.method == 'POST':
+        form = StudentProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully')
+            return redirect('student_dashboard')
+    else:
+        form = StudentProfileForm(instance=request.user)
+    return render(request, 'users/student/student_profile_edit.html', {'form': form})
+
 
 @login_required
 def student_courses_view(request):
