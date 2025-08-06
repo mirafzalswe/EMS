@@ -117,6 +117,29 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         
         return queryset
 
+from .forms import CourseForm
+
+@login_required
+def edit_course(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            return redirect('courses:course_list')
+    else:
+        form = CourseForm(instance=course)
+    return render(request, 'courses/course_form.html', {'form': form})
+
+@login_required
+def delete_course(request,pk):
+    course = get_object_or_404(Course, pk=pk)
+    course.delete()
+    messages.success(request, 'Course deleted successfully!')
+    return redirect('courses:course_list')
+
+
+
 class LearningMaterialViewSet(viewsets.ModelViewSet):
     """ViewSet для учебных материалов"""
     queryset = LearningMaterial.objects.all()

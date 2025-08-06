@@ -636,55 +636,27 @@ class TeacherDetailView(LoginRequiredMixin, DetailView):
         context['groups'] = Group.objects.filter(teacher=teacher)
         return context
     
-
+from .forms import AddTeacherForm
 @login_required
 @user_passes_test(lambda u: u.is_admin)
 def add_teacher(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        password = request.POST.get('password')
-        password2 = request.POST.get('password2')
-
-        # Validation
-        if not all([username, first_name, last_name, email, phone, password, password2]):
-            messages.error(request, 'All fields are required')
-            return redirect('add_teacher')
-
-        if password != password2:
-            messages.error(request, 'Passwords do not match')
-            return redirect('add_teacher')
+        form = AddTeacherForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.user_type = 'teacher'
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect('teacher_list')
 
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists')
-            return redirect('add_teacher')
+            return redirect('admin_dashboard')
 
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return redirect('add_teacher')
-
-        # Create teacher
-        try:
-            teacher = User.objects.create(
-                username=username,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                phone=phone,
-                password=make_password(password),
-                user_type='teacher',
-                is_active=True
-            )
-            messages.success(request, f'Teacher {teacher.get_full_name()} has been added successfully')
             return redirect('admin_dashboard')
-        except Exception as e:
-            messages.error(request, f'Error creating teacher: {str(e)}')
-            return redirect('add_teacher')
-
-    return render(request, 'users/add_teacher.html')
+    return render(request, 'users/add_teacher.html', {'form': AddTeacherForm()})
 
 
 @login_required

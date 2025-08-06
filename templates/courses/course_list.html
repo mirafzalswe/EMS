@@ -120,12 +120,15 @@
                                         </span>
                                         <div class="btn-group">
                                             {% if is_admin %}
-                                                <a href="#" class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-edit me-1"></i>O'gartirish
+                                                <a href="{% url 'courses:edit_course' course.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit me-1"></i>O'zgartirish
                                                 </a>
                                             {% endif %}
                                             <a href="#" class="btn btn-sm btn-primary">
                                                 <i class="fas fa-eye me-1"></i> Detail
+                                            </a>
+                                            <a href="{% url 'courses:delete_course' course.pk %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash me-1"></i>Ochirish
                                             </a>
                                         </div>
                                     </div>

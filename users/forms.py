@@ -20,3 +20,8 @@ class StudentProfileForm(forms.ModelForm):
         fields = ['first_name','last_name', 'email', 'phone']
     
     
+
+class AddTeacherForm(forms.ModelForm):
+    class Meta: 
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'phone', 'password']
