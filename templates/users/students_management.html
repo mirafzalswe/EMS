@@ -2,24 +2,22 @@
 {% load static %}
 
 {% block title %}
-    <title>Studentlarni boshqarish</title>
+    <title>Talabalar boshqaruvi</title>
 {% endblock %}
 
 {% block content %}
 <div class="app-container">
     <div class="content">
-        <div class="container-fluid">
+        <div class="students-management-container">
             <!-- Page Header -->
-            <div class="page-header mb-4">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <h1 class="mb-0">
-                            <i class="fas fa-users me-2"></i>Talabalar boshqaruvi
-                        </h1>
-                        <p class="text-muted mb-0">Ko'rish va barcha talabalarni boshqarish</p>
+            <div class="page-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1><i class="fas fa-users me-2"></i>Talabalar boshqaruvi</h1>
+                        <p class="subtitle">Barcha talabalarni ko'rish va boshqarish</p>
                     </div>
-                    <div class="col-auto">
-                        <a href="{% url 'add_student' %}" class="btn btn-success me-2">
+                    <div class="header-right">
+                        <a href="{% url 'add_student' %}" class="btn btn-success">
                             <i class="fas fa-user-plus me-2"></i>Yangi talaba qo'shish
                         </a>
                         <a href="{% url 'add_student_to_group' %}" class="btn btn-primary">
@@ -30,9 +28,10 @@
             </div>
 
             {% if messages %}
-                <div class="messages mb-4">
+                <div class="messages">
                     {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <div class="alert alert-{{ message.tags }} alert-dismissible">
+                            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
                             {{ message }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -41,185 +40,167 @@
             {% endif %}
 
             <!-- Statistics Cards -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="stat-icon bg-primary">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <h4 class="mb-0">{{ total_students }}</h4>
-                                    <p class="text-muted mb-0">Barcha talabalar</p>
-                                </div>
-                            </div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>{{ total_students }}</h4>
+                            <p>Barcha talabalar</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="stat-icon bg-success">
-                                    <i class="fas fa-graduation-cap"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <h4 class="mb-0">{{ students|length }}</h4>
-                                    <p class="text-muted mb-0">Saxifada</p>
-                                </div>
-                            </div>
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>{{ students|length }}</h4>
+                            <p>Sahifada</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Filters -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Izlash</label>
-                            <input type="text" class="form-control" name="search" 
-                                   value="{{ search_query }}" placeholder="FIO, email, telefon...">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Fan</label>
-                            <select class="form-select" name="subject">
-                                <option value="">Barcha fanlar</option>
-                                {% for subject in subjects %}
-                                    <option value="{{ subject.id }}" {% if current_subject == subject.id|stringformat:"s" %}selected{% endif %}>
-                                        {{ subject.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Filial</label>
-                            <select class="form-select" name="branch">
-                                <option value="">Barcha filiallar</option>
-                                {% for branch in branches %}
-                                    <option value="{{ branch.id }}" {% if current_branch == branch.id|stringformat:"s" %}selected{% endif %}>
-                                        {{ branch.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Guruh</label>
-                            <select class="form-select" name="group">
-                                <option value="">Barcha guruhlar</option>
-                                {% for group in groups %}
-                                    <option value="{{ group.id }}" {% if current_group == group.id|stringformat:"s" %}selected{% endif %}>
-                                        {{ group.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" name="status">
-                                <option value="">Barcha</option>
-                                <option value="active" {% if current_status == 'active' %}selected{% endif %}>Aktivlar</option>
-                                <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>No-Aktivlar</option>
-                                <option value="no_enrollment" {% if current_status == 'no_enrollment' %}selected{% endif %}>Hisobga olinmaganlar</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+            <div class="filter-card">
+                <form method="get" class="filter-form">
+                    <div class="filter-group">
+                        <label class="form-label">Izlash</label>
+                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="FIO, email, telefon...">
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Fan</label>
+                        <select class="form-select" name="subject">
+                            <option value="">Barcha fanlar</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if current_subject == subject.id|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Filial</label>
+                        <select class="form-select" name="branch">
+                            <option value="">Barcha filiallar</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.id }}" {% if current_branch == branch.id|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Guruh</label>
+                        <select class="form-select" name="group">
+                            <option value="">Barcha guruhlar</option>
+                            {% for group in groups %}
+                                <option value="{{ group.id }}" {% if current_group == group.id|stringformat:"s" %}selected{% endif %}>{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">Barcha</option>
+                            <option value="active" {% if current_status == 'active' %}selected{% endif %}>Aktivlar</option>
+                            <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>No-Aktivlar</option>
+                            <option value="no_enrollment" {% if current_status == 'no_enrollment' %}selected{% endif %}>Hisobga olinmaganlar</option>
+                        </select>
+                    </div>
+                    <div class="filter-group filter-btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Izlash
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <!-- Students Table -->
-            <div class="card">
+            <div class="table-card">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-list me-2"></i>Talabalar ro'yxati
-                        </h5>
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="display: none;">
-                                <i class="fas fa-trash me-1"></i>Tanlanganlarni o'chirish
-                            </button>
-                        </div>
+                    <div class="header-content">
+                        <h5><i class="fas fa-list me-2"></i>Talabalar ro'yxati</h5>
+                        <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="display: none;">
+                            <i class="fas fa-trash me-2"></i>Tanlanganlarni o'chirish
+                        </button>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-column"><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                                <th>Talaba</th>
+                                <th>Kontakt</th>
+                                <th>Parol</th>
+                                <th>Hisobga olish</th>
+                                <th>Statistika</th>
+                                <th>Harakat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
                                 <tr>
-                                    <th width="40">
-                                        <input type="checkbox" id="selectAll" class="form-check-input">
-                                    </th>
-                                    <th>Talaba</th>
-                                    <th>Kontakt</th>
-                                    <th>Hisobga olish</th>
-                                    <th>Statistika</th>
-                                    <th>Harakat</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for student in students %}
-                                <tr>
+                                    <td><input type="checkbox" class="form-check-input student-checkbox" value="{{ student.id }}"></td>
                                     <td>
-                                        <input type="checkbox" class="form-check-input student-checkbox" value="{{ student.id }}">
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-placeholder me-3">
-                                                {{ student.get_full_name|slice:":2"|upper }}
+                                        <div class="student-info">
+                                            <div class="avatar-placeholder">
+                                                {% if student.get_full_name %}
+                                                    {{ student.get_full_name|slice:":2"|upper }}
+                                                {% else %}
+                                                    {{ student.username|slice:":2"|upper }}
+                                                {% endif %}
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">{{ student.get_full_name }}</h6>
+                                                <h6>{{ student.get_full_name|default:student.username }}</h6>
                                                 <small class="text-muted">ID: {{ student.id }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div>
-                                            <div><i class="fas fa-envelope me-1"></i>{{ student.email }}</div>
+                                        <div class="contact-info">
+                                            <div><i class="fas fa-envelope me-2"></i>{{ student.email|default:"Email yo'q" }}</div>
                                             {% if student.phone %}
-                                                <div><i class="fas fa-phone me-1"></i>{{ student.phone }}</div>
+                                                <div><i class="fas fa-phone me-2"></i>{{ student.phone }}</div>
                                             {% endif %}
                                             {% if student.parent %}
-                                                <div><i class="fas fa-user-friends me-1"></i>Ota-ona: {{ student.parent.get_full_name }}</div>
+                                                <div><i class="fas fa-user-friends me-2"></i>Ota-ona: {{ student.parent.get_full_name }}</div>
                                             {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="password-container">
+                                            <span class="password-text" data-student-id="{{ student.id }}">********</span>
+                                            <button class="reveal-password-btn" title="Parolni ko'rish">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
                                         </div>
                                     </td>
                                     <td>
                                         {% if student.enrollments_info %}
                                             <div class="enrollments-list">
                                                 {% for enrollment in student.enrollments_info %}
-                                                <div class="enrollment-item mb-2 p-2 border rounded">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div>
-                                                            <strong>{{ enrollment.group.course.name }}</strong><br>
-                                                            <small class="text-muted">
+                                                    <div class="enrollment-item">
+                                                        <div class="enrollment-details">
+                                                            <strong>{{ enrollment.group.course.name }}</strong>
+                                                            <div class="text-muted">
                                                                 Guruh: {{ enrollment.group.name }} | 
                                                                 O'qituvchi: {{ enrollment.group.teacher.get_full_name }}
-                                                            </small><br>
-                                                            <small class="text-muted">
+                                                            </div>
+                                                            <div class="text-muted">
                                                                 Hisobga olindi: {{ enrollment.enrollment_date|date:"d.m.Y" }}
-                                                            </small>
+                                                            </div>
                                                         </div>
-                                                        <form method="post" action="{% url 'remove_student_from_group' %}" class="d-inline">
+                                                        <form method="post" action="{% url 'remove_student_from_group' %}" class="remove-form">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
                                                             <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                                    onclick="return confirm('Удалить студента из группы {{ enrollment.group.name }}?')">
+                                                                    onclick="return confirm('Talabani {{ enrollment.group.name }} guruhidan o\'chirishni xohlaysizmi?')">
                                                                 <i class="fas fa-times"></i>
                                                             </button>
                                                         </form>
                                                     </div>
-                                                </div>
                                                 {% endfor %}
                                             </div>
                                         {% else %}
@@ -228,94 +209,78 @@
                                     </td>
                                     <td>
                                         <div class="stats-info">
-                                            <div class="mb-1">
+                                            <div class="stat-item">
                                                 <span class="badge bg-primary">{{ student.total_enrollments }}</span>
-                                                <small class="text-muted">barcha hisoblar</small>
+                                                <small>Barcha hisoblar</small>
                                             </div>
-                                            <div>
+                                            <div class="stat-item">
                                                 <span class="badge bg-success">{{ student.active_enrollments }}</span>
-                                                <small class="text-muted">aktivlar</small>
+                                                <small>Aktivlar</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'add_student_to_group' %}?student_id={{ student.id }}" 
-                                               class="btn btn-outline-primary" title="Добавить в группу">
+                                        <div class="action-buttons">
+                                            <a href="{% url 'add_student_to_group' %}?student_id={{ student.id }}" class="btn btn-sm btn-outline-primary" title="Guruhga qo'shish">
                                                 <i class="fas fa-plus"></i>
                                             </a>
-                                            <a href="{% url 'attendance:student_attendance' student.id %}" 
-                                               class="btn btn-outline-info" title="Посещаемость">
+                                            <a href="{% url 'attendance:student_attendance' student.id %}" class="btn btn-sm btn-outline-info" title="Davomat">
                                                 <i class="fas fa-clipboard-check"></i>
                                             </a>
-                                            <button type="button" class="btn btn-outline-danger" 
-                                                    onclick="deleteStudent({{ student.id }}, '{{ student.get_full_name }}')" 
-                                                    title="Удалить студента">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteStudent({{ student.id }}, '{{ student.get_full_name|default:student.username|escapejs }}')"
+                                                    title="Talabani o'chirish">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
-                                {% empty %}
+                            {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">
-                                        <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                                    <td colspan="7" class="empty-state">
+                                        <i class="fas fa-search fa-2x text-muted"></i>
                                         <h5>Talabalar topilmadi</h5>
                                         <p class="text-muted">Filtrni o'zgartirib izlab ko'ring</p>
                                     </td>
                                 </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Pagination -->
             {% if students.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
+                <div class="pagination">
                     {% if students.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ students.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_group %}&group={{ current_group }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
+                        <a href="?page={{ students.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_group %}&group={{ current_group }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" class="pagination-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
                     {% endif %}
-
                     {% for num in students.paginator.page_range %}
                         {% if students.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
+                            <span class="pagination-btn active">{{ num }}</span>
                         {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_group %}&group={{ current_group }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">{{ num }}</a>
-                            </li>
+                            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_group %}&group={{ current_group }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" class="pagination-btn">{{ num }}</a>
                         {% endif %}
                     {% endfor %}
-
                     {% if students.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ students.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_group %}&group={{ current_group }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
+                        <a href="?page={{ students.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_group %}&group={{ current_group }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" class="pagination-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
                     {% endif %}
-                </ul>
-            </nav>
+                </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Hidden form for deleting students -->
+<!-- Hidden Forms -->
 <form id="deleteStudentForm" method="post" action="{% url 'delete_student' %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="student_id" id="deleteStudentId">
 </form>
 
-<!-- Hidden form for bulk deleting students -->
 <form id="bulkDeleteForm" method="post" action="{% url 'bulk_delete_students' %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="student_ids" id="bulkDeleteStudentIds">
@@ -323,124 +288,310 @@
 
 <script>
 function deleteStudent(studentId, studentName) {
-    if (confirm(`Вы уверены, что хотите удалить студента "${studentName}"?\n\nЭто действие нельзя отменить.`)) {
+    if (confirm(`Siz haqiqatan ham "${studentName}" talabasini o'chirishni xohlaysizmi?\n\nBu amalni bekor qilib bo'lmaydi.`)) {
         document.getElementById('deleteStudentId').value = studentId;
         document.getElementById('deleteStudentForm').submit();
     }
 }
 
-// Bulk delete functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Select all functionality
     const selectAllCheckbox = document.getElementById('selectAll');
     const studentCheckboxes = document.querySelectorAll('.student-checkbox');
     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-    
-    // Select all functionality
+
     selectAllCheckbox.addEventListener('change', function() {
         studentCheckboxes.forEach(checkbox => {
             checkbox.checked = this.checked;
         });
         updateBulkDeleteButton();
     });
-    
-    // Individual checkbox functionality
+
     studentCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             updateSelectAllCheckbox();
             updateBulkDeleteButton();
         });
     });
-    
-    // Bulk delete button functionality
+
     bulkDeleteBtn.addEventListener('click', function() {
         const selectedIds = Array.from(studentCheckboxes)
             .filter(checkbox => checkbox.checked)
             .map(checkbox => checkbox.value);
         
         if (selectedIds.length === 0) {
-            alert('Выберите студентов для удаления');
+            alert('O\'chirish uchun talabalarni tanlang');
             return;
         }
         
-        if (confirm(`Вы уверены, что хотите удалить ${selectedIds.length} студента(ов)?\n\nЭто действие нельзя отменить.`)) {
+        if (confirm(`Siz haqiqatan ham ${selectedIds.length} ta talabani o'chirishni xohlaysizmi?\n\nBu amalni bekor qilib bo'lmaydi.`)) {
             document.getElementById('bulkDeleteStudentIds').value = selectedIds.join(',');
             document.getElementById('bulkDeleteForm').submit();
         }
     });
-    
+
     function updateSelectAllCheckbox() {
         const checkedCount = Array.from(studentCheckboxes).filter(checkbox => checkbox.checked).length;
         const totalCount = studentCheckboxes.length;
         
-        if (checkedCount === 0) {
-            selectAllCheckbox.checked = false;
-            selectAllCheckbox.indeterminate = false;
-        } else if (checkedCount === totalCount) {
-            selectAllCheckbox.checked = true;
-            selectAllCheckbox.indeterminate = false;
-        } else {
-            selectAllCheckbox.checked = false;
-            selectAllCheckbox.indeterminate = true;
-        }
+        selectAllCheckbox.checked = checkedCount === totalCount;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
     }
-    
+
     function updateBulkDeleteButton() {
         const checkedCount = Array.from(studentCheckboxes).filter(checkbox => checkbox.checked).length;
-        if (checkedCount > 0) {
-            bulkDeleteBtn.style.display = 'inline-block';
-            bulkDeleteBtn.innerHTML = `<i class="fas fa-trash me-1"></i>Удалить выбранных (${checkedCount})`;
-        } else {
-            bulkDeleteBtn.style.display = 'none';
-        }
+        bulkDeleteBtn.style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+        bulkDeleteBtn.innerHTML = `<i class="fas fa-trash me-2"></i>Tanlanganlarni o'chirish (${checkedCount})`;
     }
+
+    // Password reveal functionality
+    document.querySelectorAll('.reveal-password-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const passwordText = this.previousElementSibling;
+            const studentId = passwordText.dataset.studentId;
+            const icon = this.querySelector('i');
+
+            if (passwordText.textContent === '********') {
+                fetch('{% url 'reveal_student_password' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: new URLSearchParams({
+                        'student_id': studentId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        passwordText.textContent = data.password;
+                        icon.classList.replace('fa-eye', 'fa-eye-slash');
+                    } else {
+                        alert(data.error || 'Parolni ko\'rishda xatolik yuz berdi');
+                    }
+                })
+                .catch(() => alert('Parolni ko\'rishda xatolik yuz berdi'));
+            } else {
+                passwordText.textContent = '********';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+    });
 });
 </script>
 
 <style>
-.app-container {
-    min-height: calc(100vh - 60px);
-    background-color: #f8f9fa;
+.students-management-container {
+    max-width: 100%;
+    margin: 30px auto;
+    background: var(--background-color);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 32px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.students-management-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .page-header {
-    padding: 1.5rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: transparent;
+    padding: 0;
+    margin-bottom: 24px;
 }
 
-.page-header h1 {
-    font-weight: 600;
-    color: #2d3748;
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.header-left .subtitle {
+    font-size: 16px;
+    color: var(--text-light);
+    margin: 8px 0 0;
+}
+
+.header-right {
+    display: flex;
+    gap: 12px;
+}
+
+.stats-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
 }
 
 .stat-card {
-    border: none;
+    flex: 1;
+    min-width: 200px;
+    background: var(--background-color);
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
 }
 
+.stat-content {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+}
+
 .stat-icon {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
     color: white;
     font-size: 1.25rem;
+}
+
+.stat-info h4 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+}
+
+.stat-info p {
+    font-size: 14px;
+    color: var(--text-light);
+    margin: 4px 0 0;
+}
+
+.filter-card {
+    background: var(--background-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.filter-form {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-btn-group {
+    align-self: flex-end;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-color);
+    background: linear-gradient(180deg, #ffffff, #f9fafb);
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    outline: none;
+}
+
+.btn-primary, .btn-success {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+    border: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover, .btn-success:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.2);
+}
+
+.table-card {
+    background: var(--background-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-header h5 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.table {
+    margin: 0;
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--text-color);
+    padding: 14px 16px;
+    background: var(--secondary-color);
+}
+
+.table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+}
+
+.checkbox-column {
+    width: 40px;
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .avatar-placeholder {
     width: 40px;
     height: 40px;
-    background-color: #e9ecef;
-    color: #6c757d;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+    color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -449,46 +600,261 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 0.9rem;
 }
 
+.contact-info div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.password-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-text {
+    font-family: monospace;
+    color: var(--text-light);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reveal-password-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 16px;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reveal-password-btn:hover {
+    background: rgba(79, 70, 229, 0.1);
+    border-radius: 4px;
+}
+
 .enrollment-item {
-    background-color: #f8f9fa;
-    border-color: #e9ecef !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
 }
 
-.enrollment-item:hover {
-    background-color: #e9ecef;
+.enrollment-details {
+    flex: 1;
 }
 
-.stats-info .badge {
+.enrollment-details strong {
+    font-size: 14px;
+}
+
+.enrollment-details .text-muted {
+    font-size: 12px;
+}
+
+.remove-form {
+    margin-left: 8px;
+}
+
+.stats-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-item .badge {
     font-size: 0.75rem;
+    padding: 4px 8px;
 }
 
-.table th {
-    font-weight: 600;
-    color: #495057;
-    border-top: none;
+.action-buttons {
+    display: flex;
+    gap: 8px;
 }
 
-.table td {
-    vertical-align: middle;
-}
-
-.btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
+.btn-outline-primary, .btn-outline-info, .btn-outline-danger {
+    padding: 6px;
     font-size: 0.8rem;
 }
 
-@media (max-width: 768px) {
-    .page-header {
-        padding: 1rem;
+.empty-state {
+    text-align: center;
+    padding: 24px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.pagination-btn {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.pagination-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.pagination-btn.active {
+    background: var(--primary-dark);
+    cursor: default;
+}
+
+.alert {
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Dark theme support */
+body.dark-theme .students-management-container {
+    background: #2d2d2d;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .header-left h1 {
+    color: #ffffff;
+}
+
+body.dark-theme .header-left .subtitle, body.dark-theme .stat-info p, body.dark-theme .contact-info .text-muted, body.dark-theme .enrollment-details .text-muted {
+    color: #9ca3af;
+}
+
+body.dark-theme .stat-card, body.dark-theme .filter-card, body.dark-theme .table-card {
+    background: #2d2d2d;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .form-control, body.dark-theme .form-select {
+    background: linear-gradient(180deg, #374151, #2d3748);
+    border-color: #4b5563;
+    color: #ffffff;
+}
+
+body.dark-theme .form-control:focus, body.dark-theme .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+}
+
+body.dark-theme .table th {
+    background: #404040;
+    color: #e5e7eb;
+}
+
+body.dark-theme .table td {
+    color: #e5e7eb;
+}
+
+body.dark-theme .enrollment-item {
+    background: #374151;
+}
+
+body.dark-theme .password-text {
+    color: #9ca3af;
+}
+
+body.dark-theme .alert-success {
+    background: #1a3a2a;
+    color: #34d399;
+}
+
+body.dark-theme .alert-error {
+    background: #3a1a1a;
+    color: #f87171;
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+    .filter-form {
+        flex-direction: column;
     }
-    
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .stats-row {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .students-management-container {
+        margin: 20px 15px;
+        padding: 20px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-right {
+        justify-content: center;
+    }
+
     .table-responsive {
         font-size: 0.9rem;
     }
-    
-    .enrollment-item {
+
+    .student-info h6, .contact-info div, .enrollment-details strong {
+        font-size: 0.9rem;
+    }
+
+    .password-text {
+        max-width: 80px;
+    }
+}
+
+@media (max-width: 576px) {
+    .students-management-container {
+        margin: 15px 10px;
+        padding: 16px;
+    }
+
+    .header-left h1 {
+        font-size: 24px;
+    }
+
+    .header-left .subtitle {
+        font-size: 14px;
+    }
+
+    .stat-card {
+        min-width: 100%;
+    }
+
+    .form-control, .form-select, .btn-primary, .btn-success {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .table th, .table td {
+        padding: 10px 8px;
         font-size: 0.85rem;
+    }
+
+    .avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
     }
 }
 </style>
-{% endblock %} 
+{% endblock %}

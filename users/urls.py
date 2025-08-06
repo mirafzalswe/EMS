@@ -10,7 +10,7 @@ from .views import (
     TeacherDetailView, assignment_list_teachers, student_courses_view,
     students_management_view, add_student_to_group, remove_student_from_group, delete_student,
     bulk_delete_students, students_assignments, groups_management, student_change_password,
-    student_profile_edit
+    student_profile_edit, reveal_student_password,
 )
 from django.contrib.auth import views as auth_views
 
@@ -57,4 +57,5 @@ urlpatterns = [
     path('students/remove-from-group/', remove_student_from_group, name='remove_student_from_group'),
     path('students/delete/', delete_student, name='delete_student'),
     path('students/bulk-delete/', bulk_delete_students, name='bulk_delete_students'),
+    path('reveal-student-password/', reveal_student_password, name='reveal_student_password'),
 ]

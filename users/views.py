@@ -894,23 +894,69 @@ def student_courses_view(request):
 
 def is_admin_or_staff(user):
     return user.is_authenticated and (user.is_admin or getattr(user, 'is_staff', False) or user.is_superuser)
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import user_passes_test
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import User
+import logging
 
+@user_passes_test(lambda u: u.is_admin or u.is_staff)
+@login_required
+def reveal_student_password(request):
+    if request.method != 'POST' or request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return JsonResponse({'error': 'Noto\'g\'ri so\'rov turi'}, status=400)
+
+    student_id = request.POST.get('student_id')
+    if not student_id:
+        return JsonResponse({'error': 'Talaba IDsi talab qilinadi'}, status=400)
+
+    try:
+        student = get_object_or_404(User, id=student_id, user_type='student')
+        
+        # Generate a temporary password that meets security requirements
+        import secrets
+        import string
+        
+        # Generate a random 10-character password with letters, digits, and special characters
+        alphabet = string.ascii_letters + string.digits + '!@#$%^&*'
+        temporary_password = ''.join(secrets.choice(alphabet) for _ in range(10))
+        
+        # Set the new password for the student
+        student.set_password(temporary_password)
+        student.save()
+
+        logger = logging.getLogger(__name__)
+        logger.info(f"Admin {request.user.username} viewed password for student {student.username}")
+
+        return JsonResponse({
+            'success': True,
+            'password': temporary_password
+        })
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Talaba topilmadi'}, status=404)
+    except Exception as e:
+        logger.error(f"Error revealing password for student {student_id}: {str(e)}")
+        return JsonResponse({'error': 'Xatolik yuz berdi'}, status=500)
+
+from django.db.models import Q, Prefetch
 @login_required
 @user_passes_test(is_admin_or_staff)
 def students_management_view(request):
     """
     Представление для управления студентами
     """
+
     # Получаем параметры фильтрации
     search_query = request.GET.get('search', '')
     subject_filter = request.GET.get('subject', '')
     branch_filter = request.GET.get('branch', '')
     group_filter = request.GET.get('group', '')
     status_filter = request.GET.get('status', '')
-    
+
     # Базовый queryset студентов
     students = User.objects.filter(user_type='student')
-    
+
     # Применяем фильтры
     if search_query:
         students = students.filter(
@@ -919,16 +965,16 @@ def students_management_view(request):
             Q(email__icontains=search_query) |
             Q(phone__icontains=search_query)
         )
-    
+
     if subject_filter:
         students = students.filter(enrollments__group__course__subject_id=subject_filter).distinct()
-    
+
     if branch_filter:
         students = students.filter(enrollments__group__branch_id=branch_filter).distinct()
-    
+
     if group_filter:
         students = students.filter(enrollments__group_id=group_filter).distinct()
-    
+
     if status_filter:
         if status_filter == 'active':
             students = students.filter(enrollments__is_active=True).distinct()
@@ -936,23 +982,34 @@ def students_management_view(request):
             students = students.filter(enrollments__is_active=False).distinct()
         elif status_filter == 'no_enrollment':
             students = students.filter(enrollments__isnull=True)
-    
-    # Добавляем информацию о зачислениях
-    for student in students:
-        student.enrollments_info = student.enrollments.select_related(
-            'group__course__subject', 
-            'group__branch', 
+
+    # Оптимизация запросов
+    students = students.prefetch_related(
+        Prefetch('enrollments', queryset=Enrollment.objects.select_related(
+            'group__course__subject',
+            'group__branch',
             'group__teacher'
-        ).filter(is_active=True)
-        student.total_enrollments = student.enrollments.count()
-        student.active_enrollments = student.enrollments.filter(is_active=True).count()
-    
+        ))
+    )
+
+    # Обогащаем объект дополнительной информацией
+    for student in students:
+        enrollments_all = list(student.enrollments.all())
+        enrollments_active = [e for e in enrollments_all if e.is_active]
+
+        student.enrollments_info = enrollments_active
+        student.total_enrollments = len(enrollments_all)
+        student.active_enrollments = len(enrollments_active)
+
+        # Показываем "сырой пароль", если он сохранён отдельно
+        student.raw_password = getattr(student, 'raw_password', '********')
+
     # Пагинация
     paginator = Paginator(students, 20)
     page_number = request.GET.get('page')
     students_page = paginator.get_page(page_number)
-    
-    # Контекст для фильтров
+
+    # Контекст для шаблона
     context = {
         'students': students_page,
         'search_query': search_query,
@@ -963,11 +1020,10 @@ def students_management_view(request):
         'subjects': Subject.objects.all(),
         'branches': Branch.objects.all(),
         'groups': Group.objects.filter(is_active=True),
-        'total_students': students.count(),
+        'total_students': students.count(),  # Можно также вынести до фильтрации
     }
-    
-    return render(request, 'users/students_management.html', context)
 
+    return render(request, 'users/students_management.html', context)
 @login_required
 @user_passes_test(is_admin_or_staff)
 def add_student_to_group(request):
